@@ -1,42 +1,91 @@
 <!DOCTYPE html>
-<html xmlns="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>커뮤니티 플랫폼</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <title>모의 주식 거래소</title>
+    <style>
+        body { background: #18191d; color: #fff; margin: 0; font-family: 'Noto Sans KR', sans-serif; }
+        .header { display: flex; align-items: center; justify-content: space-between; padding: 18px 40px; background: #18191d; border-bottom: 1px solid #232327; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #fff; }
+        .nav { display: flex; gap: 32px; }
+        .nav a { color: #bdbdbd; text-decoration: none; font-size: 1.05rem; padding: 6px 14px; border-radius: 6px; }
+        .nav a.active, .nav a:hover { background: #232327; color: #fff; }
+        .search-box { background: #232327; border-radius: 6px; padding: 6px 16px; border: none; color: #fff; margin-left: 24px; }
+        .login-btn { background: #3b82f6; color: #fff; border: none; border-radius: 6px; padding: 8px 24px; font-size: 1rem; cursor: pointer; }
+        .main { display: flex; gap: 32px; padding: 32px 40px; }
+        .stock-table { background: #232327; border-radius: 14px; padding: 28px 24px; flex: 2; min-width: 540px; }
+        .stock-table table { width: 100%; border-collapse: collapse; }
+        .stock-table th, .stock-table td { padding: 12px 8px; text-align: left; }
+        .stock-table th { color: #bdbdbd; font-weight: normal; border-bottom: 1px solid #333; }
+        .stock-table tr { border-bottom: 1px solid #232327; }
+        .stock-table tr:last-child { border-bottom: none; }
+        .stock-table td.price-up { color: #ff5c5c; }
+        .stock-table td.price-down { color: #3b82f6; }
+        .stock-table td.price-flat { color: #bdbdbd; }
+        .right-panel { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+        .mini-chart, .index-panel, .news-panel { background: #232327; border-radius: 14px; padding: 18px 18px; }
+        .mini-chart { height: 120px; }
+        .index-panel { font-size: 0.98rem; }
+        .news-panel { font-size: 0.93rem; }
+        @media (max-width: 1000px) {
+            .main { flex-direction: column; }
+            .right-panel { flex-direction: row; gap: 12px; }
+            .mini-chart, .index-panel, .news-panel { flex: 1; }
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <div class="auth-buttons">
-            <a href="login.html" class="btn">로그인</a>
-            <a href="signup.html" class="btn">회원가입</a>
-        </div>
-    </header>
-    <main>
-        <div class="section-container">
-            <div class="section-card">
-                <h2>자유게시판</h2>
-                <p>자유롭게 의견을 나누세요!</p>
-                <a href="board.html" class="section-btn">이동하기</a>
+<!-- 상단 네비게이션 -->
+<div class="header">
+    <div class="logo">모의증권</div>
+    <nav class="nav">
+        <a th:href="@{/}" class="active">홈</a>
+        <a th:href="@{/board}">게시판</a>
+        <a th:href="@{/ranking}">랭킹</a>
+        <a th:href="@{/game}">모의투자</a>
+    </nav>
+    <input class="search-box" type="text" placeholder="종목 검색" />
+    <button class="login-btn" th:if="${not #request.remoteUser}" th:onclick="|location.href='@{/login}'|">로그인</button>
+    <span th:if="${#request.remoteUser}" style="color:#fff;">[[${#request.remoteUser}]]님</span>
+</div>
+
+<!-- 메인 콘텐츠 -->
+<div class="main">
+    <!-- 실시간 종목 테이블 -->
+    <div class="stock-table">
+        <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 10px;">실시간 차트</div>
+        <table>
+            <thead>
+            <tr>
+                <th>순위</th>
+                <th>종목</th>
+                <th>현재가</th>
+                <th>등락률</th>
+                <th>거래대금</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="stock, iterStat : ${stockList}">
+                <td th:text="${iterStat.count}">1</td>
+                <td>
+                    <span th:text="${stock.name}">삼성전자</span>
+                </td>
+                <td th:text="${stock.price}" th:classappend="${stock.change > 0} ? 'price-up' : (stock.change < 0) ? 'price-down' : 'price-flat'">52,000</td>
+                <td th:text="${stock.change > 0 ? '+' : ''}${stock.change} + '%'" th:classappend="${stock.change > 0} ? 'price-up' : (stock.change < 0) ? 'price-down' : 'price-flat'">+1.8%</td>
+                <td th:text="${stock.volume}">104억</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- 오른쪽 미니 패널 -->
+    <div class="right-panel">
+        <div class="mini-chart">
+            <div style="font-weight:bold; margin-bottom:6px;">나의 포트폴리오</div>
+            <div style="height:80px; background:#202125; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#bdbdbd;">
+                (차트 영역)
             </div>
-            <div class="section-card">
-                <h2>모의투자</h2>
-                <p>투자 연습을 해보세요!</p>
-                <a href="investment.html" class="section-btn">이동하기</a>
-            </div>
-            <div class="section-card">
-                <h2>미니게임</h2>
-                <p>재미있는 게임을 즐기세요!</p>
-                <a href="game.html" class="section-btn">이동하기</a>
-            </div>
         </div>
-    </main>
-    <footer>
-        <div class="footer-content">
-            <p>전화번호: 02-1234-5678</p>
-            <p>회사 주소: 목포대</p>
-        </div>
-    </footer>
+    </div>
+</div>
 </body>
 </html>
