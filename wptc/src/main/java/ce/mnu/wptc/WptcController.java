@@ -19,6 +19,6 @@ public class WptcController {
 	    response.setHeader("Pragma", "no-cache");
 	    response.setDateHeader("Expires", 0);
 		
-		return "main";
+		return "wptc";
 	}
 }
