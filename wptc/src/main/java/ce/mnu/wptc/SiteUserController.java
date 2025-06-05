@@ -15,10 +15,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class SiteUserController {
 	@Autowired
 	private SiteUserService userService;
+
 	@GetMapping("/signup")
-	public String singup() {
+	public String signup() {
 		return "signup_input";
 	}
+
 	@PostMapping("/signup")
 	public String signup(SiteUserDTO user) {
 		userService.save(user);

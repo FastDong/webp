@@ -92,10 +92,10 @@
 <div class="center-bg">
     <div class="signup-box">
         <div class="signup-title">회원가입</div>
-        <form class="signup-form" th:action="@{/siteuser/singup}" method="post">
-            <input type="text" name="name" placeholder="이름" required>
+        <form class="signup-form" th:action="@{/siteuser/signup}" method="post">
+        <input type="text" name="name" placeholder="이름" required>
             <input type="email" name="email" placeholder="Email" required>
-            <input type="password" name="password" placeholder="Password" required>
+            <input type="password" name="passwd" placeholder="Password" required>
             <div class="btn-group">
                 <button class="btn" type="reset">초기화</button>
                 <button class="btn" type="submit">확인</button>
