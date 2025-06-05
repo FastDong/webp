@@ -85,6 +85,20 @@
             background: #35518a;
         }
     </style>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // 페이지 로드 완료 후 스크립트 실행 (DOMContentLoaded가 window.onload보다 빠름)
+        document.addEventListener('DOMContentLoaded', function() {
+            // 서버에서 전달된 loginError 메시지를 가져옴
+            // th:if를 사용해서 loginError가 있을 때만 이 스크립트 변수를 만들도록 할 수도 있음
+            var errorMessage = /*[[${loginError}]]*/ null;
+
+            if (errorMessage) {
+                alert(errorMessage);
+            }
+        });
+        /*]]>*/
+    </script>
 </head>
 <body>
 <div class="center-bg">

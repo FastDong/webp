@@ -51,10 +51,13 @@ public class SiteUserController {
 	public String start() {
 		return "start";
 	}
+
+
 	@GetMapping("/login")
 	public String loginForm() {
 		return "login";
 	}
+
 	@GetMapping("/logout")
 	public String logout(HttpSession session) {
 		session.invalidate();
@@ -70,7 +73,7 @@ public class SiteUserController {
 				return "login_done";
 			}
 		}
-		rd.addFlashAttribute("reason", "wrong password");
-		return "redirect:/error";
+		rd.addFlashAttribute("loginError", "아이디 또는 비밀번호가 틀렸습니다.");
+		return "redirect:/siteuser/login";
 	}
 }
