@@ -1,10 +1,10 @@
 package ce.mnu.wptc.repository;
 
+import ce.mnu.wptc.entity.Member;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "USER_ASSET",

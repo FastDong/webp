@@ -3,99 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <title>회원가입</title>
+    <!-- <style> 태그 부분은 기존과 동일하므로 생략 -->
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: #232b39;
-            width: 100vw;
-            height: 100vh;
-        }
-        .center-bg {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #232b39;
-        }
-        .signup-box {
-            background: #fff;
-            border-radius: 28px;
-            width: 370px;
-            padding: 48px 36px 32px 36px;
-            box-shadow: 0 0 0 10px #222;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .signup-title {
-            font-size: 2.3rem;
-            font-weight: 500;
-            color: #7f6fff;
-            margin-bottom: 36px;
-            letter-spacing: 1px;
-        }
-        .signup-form {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-        .signup-form label {
-            font-size: 1rem;
-            color: #666;
-            margin-bottom: 2px;
-        }
-        .signup-form input[type="text"],
-        .signup-form input[type="password"],
-        .signup-form input[type="email"] {
-            width: 100%;
-            border: none;
-            border-bottom: 2px solid #aaa;
-            background: transparent;
-            font-size: 1.1rem;
-            padding: 6px 0 4px 0;
-            outline: none;
-            color: #222;
-            margin-bottom: 6px;
-        }
-        .signup-form input[type="text"]::placeholder,
-        .signup-form input[type="password"]::placeholder,
-        .signup-form input[type="email"]::placeholder {
-            color: #aaa;
-            font-style: italic;
-        }
-        .btn-group {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 16px;
-        }
-        .btn {
-            width: 46%;
-            background: #5272c6;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 7px 0;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn:hover {
-            background: #354e8a;
-        }
+        body { margin: 0; padding: 0; background: #232b39; width: 100vw; height: 100vh; }
+        .center-bg { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; background: #232b39; }
+        .signup-box { background: #fff; border-radius: 28px; width: 370px; padding: 48px 36px 32px 36px; box-shadow: 0 0 0 10px #222; display: flex; flex-direction: column; align-items: center; }
+        .signup-title { font-size: 2.3rem; font-weight: 500; color: #7f6fff; margin-bottom: 36px; letter-spacing: 1px; }
+        .signup-form { width: 100%; display: flex; flex-direction: column; gap: 18px; }
+        .signup-form input { width: 100%; border: none; border-bottom: 2px solid #aaa; background: transparent; font-size: 1.1rem; padding: 6px 0 4px 0; outline: none; color: #222; }
+        .signup-form input::placeholder { color: #aaa; font-style: italic; }
+        .btn-group { display: flex; justify-content: space-between; margin-top: 16px; }
+        .btn { width: 46%; background: #5272c6; color: #fff; border: none; border-radius: 8px; padding: 7px 0; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+        .btn:hover { background: #354e8a; }
     </style>
 </head>
 <body>
 <div class="center-bg">
     <div class="signup-box">
         <div class="signup-title">회원가입</div>
-        <form class="signup-form" th:action="@{/siteuser/signup}" method="post">
-        <input type="text" name="name" placeholder="이름" required>
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="password" name="passwd" placeholder="Password" required>
+        <!--
+            [수정 1] th:action: 컨트롤러의 @PostMapping 경로와 일치시킵니다.
+            [수정 2] th:object: 이 폼이 MemberJoinRequestDTO 객체와 연결됨을 명시합니다.
+        -->
+        <form class="signup-form" th:action="@{/members/signup}" th:object="${memberJoinRequestDTO}" method="post">
+
+            <!-- [수정 3] th:field: 각 input이 DTO의 어떤 필드와 연결되는지 명시합니다. -->
+            <!-- name="..."과 id="..." 속성을 자동으로 생성해줍니다. -->
+
+            <!-- 'loginId' 필드 추가 -->
+            <input type="text" th:field="*{loginId}" placeholder="아이디" required>
+
+            <!-- 'password' 필드 (기존 'passwd'에서 변경) -->
+            <input type="password" th:field="*{password}" placeholder="비밀번호" required>
+
+            <!-- 'nickname' 필드 (기존 'name'에서 변경) -->
+            <input type="text" th:field="*{nickname}" placeholder="닉네임" required>
+
+            <!-- 'email' 필드 -->
+            <input type="email" th:field="*{email}" placeholder="이메일" required>
+
             <div class="btn-group">
                 <button class="btn" type="reset">초기화</button>
                 <button class="btn" type="submit">확인</button>

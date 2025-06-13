@@ -15,15 +15,15 @@ public class SiteUserService {
 	private SiteUserRepository userRepository;
 	@Autowired
 	private ArticleRepository articleRepository;
-	
+
 	public Article getArticle(Long num) {
 		return articleRepository.getReferenceById(num);
 	}
-	
+
 	public Page<ArticleHeader> getArticleHeaders(Pageable pageable) {
 		return articleRepository.findArtcleHeaders(pageable);
 	}
-	
+
 	public void save(ArticleDTO dto) {
 		Article article = new Article();
 		article.setAuthor(dto.getAuthor());
@@ -34,7 +34,7 @@ public class SiteUserService {
 	public Iterable<Article> getArticleAll() {
 		return articleRepository.findAll();
 	}
-	
+
 	public void save(SiteUserDTO dto) {
 		SiteUser user = new SiteUser(dto.getName(), dto.getEmail(), dto.getPasswd());
 		userRepository.save(user);

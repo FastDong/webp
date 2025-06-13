@@ -1,5 +1,6 @@
 package ce.mnu.wptc.repository;
 
+import ce.mnu.wptc.entity.Member;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;

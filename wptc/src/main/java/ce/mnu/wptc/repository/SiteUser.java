@@ -20,6 +20,8 @@ public class SiteUser {
 	private String email;
 	@Column(length=20, nullable=false, name="password")
 	private String passwd;
+
+
 	public SiteUser(String name, String email, String passwd) {
 		this.name = name;
 		this.email = email;

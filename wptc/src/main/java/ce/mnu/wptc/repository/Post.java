@@ -3,7 +3,7 @@ package ce.mnu.wptc.repository;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.annotations.ValueGenerationType;
+import ce.mnu.wptc.entity.Member;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
