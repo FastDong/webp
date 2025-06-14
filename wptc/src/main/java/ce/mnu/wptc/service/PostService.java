@@ -1,7 +1,6 @@
 package ce.mnu.wptc.service;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,6 +17,7 @@ import ce.mnu.wptc.entity.Post;
 import ce.mnu.wptc.entity.PostImage;
 import ce.mnu.wptc.repository.CommentRepository;
 import ce.mnu.wptc.repository.MemberRepository;
+import ce.mnu.wptc.repository.PostImageRepository;
 import ce.mnu.wptc.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final PostImageRepository postImageRepository;
     private final MemberRepository memberRepository;
     private final CommentRepository commentRepository; // 의존성 추가
     private final FileService fileService;
@@ -46,35 +47,41 @@ public class PostService {
     }
 
     // (수정) 게시글 생성 (이미지 처리 포함, 메서드 통합)
+
+    // PostService.java 의 createPost 메서드
     @Transactional
     public PostDTO createPost(PostCreateRequestDTO dto, Long memberId, List<MultipartFile> images) throws IOException {
+        
+        // 1. 부모(Post) 객체를 생성합니다.
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
 
-        // 👈 빌더 대신 우리가 만든 정적 팩토리 메서드를 사용
         Post newPost = Post.createPost(member, dto.getTitle(), dto.getContent());
 
-        // 이미지 파일 처리
+        // 2. 부모를 먼저 저장하고, 즉시 flush()하여 DB에 INSERT 쿼리를 강제로 실행합니다.
+        postRepository.save(newPost);
+        postRepository.flush(); // ★★★ 이 코드가 핵심입니다 ★★★
+
+        // 3. 이제 newPost.getPostId()는 DB에 의해 확정된 ID를 가집니다.
+        //    이 ID를 사용하여 자식(PostImage)들을 저장합니다.
         if (images != null && !images.isEmpty()) {
-            List<PostImage> postImages = new ArrayList<>();
             int sequence = 1;
             for (MultipartFile imageFile : images) {
                 if (imageFile != null && !imageFile.isEmpty()) {
                     String storedImageUrl = fileService.storeFile(imageFile);
+                    
                     PostImage postImage = PostImage.builder()
-                            .post(newPost)
+                            .post(newPost) // ID가 확정된 Post를 부모로 설정
                             .imageUrl(storedImageUrl)
                             .sequence(sequence++)
                             .build();
-                    postImages.add(postImage);
+
+                    postImageRepository.save(postImage);
                 }
             }
-            newPost.setPostImages(postImages);
         }
-
-        // Post를 저장하면 연관된 PostImage도 함께 저장됨 (Cascade 설정 덕분)
-        Post savedPost = postRepository.save(newPost);
-        return PostDTO.fromEntity(savedPost);
+        
+        return PostDTO.fromEntity(newPost);
     }
 
     // 게시글 상세 조회 (조회수 증가)

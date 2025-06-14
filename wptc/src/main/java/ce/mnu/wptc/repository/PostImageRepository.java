@@ -1,12 +1,12 @@
 package ce.mnu.wptc.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import ce.mnu.wptc.entity.Post;
 import ce.mnu.wptc.entity.PostImage;
-
-import java.util.List;
 
 @Repository
 public interface PostImageRepository extends JpaRepository<PostImage, Long> {

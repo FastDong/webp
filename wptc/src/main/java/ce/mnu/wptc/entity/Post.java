@@ -15,6 +15,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -30,8 +31,9 @@ import lombok.ToString;
 @ToString(exclude = {"member", "comments", "postImages"})
 public class Post extends BaseTimeEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "POST_SEQ_GENERATOR")
+    @SequenceGenerator(name="POST_SEQ_GENERATOR", sequenceName="POST_SEQ", initialValue=1, allocationSize=1)
     @Column(name = "post_id")
     private Long postId;
 
@@ -80,5 +82,10 @@ public class Post extends BaseTimeEntity {
     public void updateContent(String title, String content) {
         this.title = title;
         this.content = content;
+    }
+    
+    public void addPostImage(PostImage postImage) {
+        this.postImages.add(postImage); // 1. 내(Post) 이미지 리스트에 추가
+        postImage.setPost(this);      // 2. 이미지(자식)에게 내가 부모임을 설정
     }
 }
