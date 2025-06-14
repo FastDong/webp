@@ -1,9 +1,9 @@
 package ce.mnu.wptc.entity;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-import ce.mnu.wptc.repository.BaseTimeEntity;
+import ce.mnu.wptc.repository.BaseTimeEntity; // BaseTimeEntity 경로 확인 필요
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,22 +17,18 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "POST")
+@Table(name = "POSTS") // Oracle 예약어 회피
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@ToString(exclude = {"member", "comments", "postImages"}) 
-@AllArgsConstructor
-@Builder
-public class Post extends BaseTimeEntity{
+@ToString(exclude = {"member", "comments", "postImages"})
+public class Post extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,34 +39,46 @@ public class Post extends BaseTimeEntity{
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
- // 수정 후
-    @Lob // 아주 긴 텍스트를 위한 표준 어노테이션
+    @Column(name = "title", length = 255, nullable = false)
+    private String title;
+
+    @Lob
     @Column(name = "content")
     private String content;
 
     @Column(name = "view_count", nullable = false)
     private int viewCount = 0;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    // 👈 BaseTimeEntity에 있으므로 createdAt, updatedAt 필드 삭제
 
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
-
-    // 게시글과 댓글의 일대다 관계
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> comments;
+    private List<Comment> comments = new ArrayList<>(); // 👈 컬렉션 필드 초기화
 
-    // 게시글과 이미지의 일대다 관계
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PostImage> postImages;
+    private List<PostImage> postImages = new ArrayList<>(); // 👈 컬렉션 필드 초기화
+
+    // --- 생성 메서드 ---
+    public static Post createPost(Member member, String title, String content) {
+        Post post = new Post();
+        post.setMember(member);
+        post.title = title;
+        post.content = content;
+        return post;
+    }
+
+    // --- 연관관계 편의 메서드 ---
+    public void setMember(Member member) {
+        this.member = member;
+        member.getPosts().add(this);
+    }
     
+    // --- 비즈니스 로직 메서드 ---
     public void increaseViewCount() {
         this.viewCount++;
     }
 
-    // 내용 수정 메서드
-    public void updateContent(String content) {
+    public void updateContent(String title, String content) {
+        this.title = title;
         this.content = content;
     }
 }

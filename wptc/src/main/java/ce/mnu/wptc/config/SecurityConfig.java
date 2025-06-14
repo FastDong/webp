@@ -1,6 +1,5 @@
 package ce.mnu.wptc.config;
 
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,28 +20,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            // CSRF 보호 기능 비활성화 (테스트를 위해 잠시 끄기)
+            .csrf(csrf -> csrf.disable())
+            
+            // 모든 HTTP 요청에 대해 접근을 허용
             .authorizeHttpRequests(authorize -> authorize
-                // 👈 (핵심) 이 부분을 수정합니다.
-                // Spring Boot가 제공하는 정적 리소스들의 기본 경로를 모두 허용합니다.
-                // 이렇게 하면 /css/**, /js/**, /images/** 등을 한 번에 처리할 수 있습니다.
-                .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                
-                // 우리가 만든 페이지 경로들을 허용합니다.
-                .requestMatchers("/", "/login", "/members/signup").permitAll()
-                
-                // 위에서 허용한 경로 외의 모든 요청은 인증(로그인)이 필요합니다.
-                .anyRequest().authenticated()
+                .requestMatchers("/**").permitAll() // "/**"는 모든 경로를 의미
             )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/", true)
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutSuccessUrl("/")
-                .invalidateHttpSession(true)
-            );
+            
+            // Spring Security의 기본 폼 로그인 기능 비활성화
+            .formLogin(form -> form.disable())
+            
+            // Spring Security의 기본 HTTP Basic 인증 비활성화
+            .httpBasic(basic -> basic.disable());
 
         return http.build();
     }

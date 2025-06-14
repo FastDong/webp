@@ -7,6 +7,7 @@
     <div class="container">
         <div class="main-content">
             <h2>최신 게시글</h2>
+            <a th:if="${currentUser != null}" th:href="@{/posts/new}" class="button-primary">새 글 작성</a>
             <table>
                 <thead>
                 <tr>

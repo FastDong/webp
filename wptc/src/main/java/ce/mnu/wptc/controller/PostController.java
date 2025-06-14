@@ -1,5 +1,6 @@
 package ce.mnu.wptc.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -9,9 +10,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import ce.mnu.wptc.dto.PostCreateRequestDTO;
 import ce.mnu.wptc.dto.PostDTO;
@@ -20,8 +22,8 @@ import ce.mnu.wptc.dto.PostUpdateRequestDTO;
 import ce.mnu.wptc.service.PostService;
 import lombok.RequiredArgsConstructor;
 
-@RestController // 이 컨트롤러는 JSON 데이터를 반환하는 API 컨트롤러입니다.
-@RequestMapping("/api/posts") // 이 컨트롤러의 모든 API는 /api/posts 경로로 시작합니다.
+@RestController
+@RequestMapping("/api/posts")
 @RequiredArgsConstructor
 public class PostController {
 
@@ -37,15 +39,17 @@ public class PostController {
     }
 
     /**
-     * 게시글 생성 API
+     * 게시글 생성 API (이미지 업로드 포함)
      */
     @PostMapping
-    public ResponseEntity<PostDTO> createPost(@RequestBody PostCreateRequestDTO requestDTO) {
-        // TODO: Spring Security 설정 후, 현재 로그인한 사용자의 ID를 가져와야 합니다.
-        // Long currentMemberId = ... ; 
+    public ResponseEntity<PostDTO> createPost(
+            @RequestPart("dto") PostCreateRequestDTO requestDTO,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) throws IOException {
+        
+        // TODO: Spring Security 설정 후, 인증 정보(Principal)에서 현재 로그인한 사용자의 ID를 가져와야 합니다.
         Long currentMemberId = 1L; // 임시로 1번 회원으로 가정
 
-        PostDTO newPost = postService.createPost(requestDTO, currentMemberId);
+        PostDTO newPost = postService.createPost(requestDTO, currentMemberId, images);
         return ResponseEntity.status(HttpStatus.CREATED).body(newPost);
     }
 
@@ -61,8 +65,9 @@ public class PostController {
     /**
      * 게시글 수정 API
      */
-    @PatchMapping("/{postId}") // 전체 수정은 @PutMapping, 부분 수정은 @PatchMapping
-    public ResponseEntity<Void> updatePost(@PathVariable("postId") Long postId, @RequestBody PostUpdateRequestDTO requestDTO) {
+    @PatchMapping("/{postId}")
+    public ResponseEntity<Void> updatePost(@PathVariable("postId") Long postId, @RequestPart("dto") PostUpdateRequestDTO requestDTO) {
+        // TODO: 이미지 수정 로직은 별도로 추가 구현이 필요합니다.
         // TODO: 현재 로그인한 사용자가 이 게시글의 작성자인지 확인하는 권한 체크 로직 필요
         postService.updatePost(postId, requestDTO);
         return ResponseEntity.ok().build();

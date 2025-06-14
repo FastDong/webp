@@ -1,13 +1,11 @@
 package ce.mnu.wptc.dto;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 public class MemberUpdateRequestDTO {
+    // 닉네임 변경에 필요한 필드만 포함
     private String nickname;
-    // 비밀번호 변경 등을 위해 다른 필드 추가 가능
 }

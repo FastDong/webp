@@ -1,8 +1,9 @@
 package ce.mnu.wptc.entity;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
+import ce.mnu.wptc.repository.BaseTimeEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,8 +16,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -26,9 +25,7 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString(exclude = {"grade", "posts", "comments", "userAssets"})
-@AllArgsConstructor
-@Builder
-public class Member {
+public class Member extends BaseTimeEntity { // 👈 1. BaseTimeEntity 상속
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,48 +44,51 @@ public class Member {
     @Column(name = "email", length = 100, nullable = false, unique = true)
     private String email;
 
-    @Builder.Default
     @Column(name = "point", nullable = false)
-    private int point = 10000; // 기본 포인트 10000
+    private int point = 10000;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "grade_id", nullable = false)
     private Grade grade;
     
-    @Builder.Default
     @Column(name = "email_verified", nullable = false)
-    private Boolean emailVerified = false; // 기본값 false
+    private Boolean emailVerified = false;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
-    // 회원과 게시글의 일대다 관계
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Post> posts;
+    private List<Post> posts = new ArrayList<>();
 
-    // 회원과 댓글의 일대다 관계
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> comments;
+    private List<Comment> comments = new ArrayList<>();
 
-    // 회원과 자산의 일대다 관계
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserAsset> userAssets;
+    private List<UserAsset> userAssets = new ArrayList<>();
 
-    // 포인트 업데이트 메서드
+    // --- 생성 메서드 (이것만 사용) ---
+    // 👈 2. @Builder는 삭제하고, 이 정적 팩토리 메서드만 남깁니다.
+    public static Member createMember(String loginId, String password, String nickname, String email, Grade grade) {
+        Member member = new Member();
+        member.loginId = loginId;
+        member.password = password;
+        member.nickname = nickname;
+        member.email = email;
+        member.grade = grade;
+        // point와 emailVerified는 필드 기본값으로 자동 초기화됩니다.
+        return member;
+    }
+    
+    // --- 비즈니스 로직 메서드 ---
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+    
     public void updatePoint(int newPoint) {
         this.point = newPoint;
     }
 
-    // 등급 업데이트 메서드
     public void updateGrade(Grade newGrade) {
         this.grade = newGrade;
     }
-    
-    // Member.java
-    public void updateNickname(String nickname) {
-        this.nickname = nickname;
-    }
-    // 이메일 인증 완료 메서드
+
     public void verifyEmail() {
         this.emailVerified = true;
     }
