@@ -1,5 +1,11 @@
 package ce.mnu.wptc.service;
 
+import java.time.LocalDateTime;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import ce.mnu.wptc.dto.MemberDTO;
 import ce.mnu.wptc.dto.MemberJoinRequestDTO;
 import ce.mnu.wptc.dto.MemberUpdateRequestDTO;
@@ -8,11 +14,7 @@ import ce.mnu.wptc.entity.Member;
 import ce.mnu.wptc.repository.GradeRepository;
 import ce.mnu.wptc.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-// import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor // final 필드에 대한 생성자 자동 주입
@@ -21,7 +23,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final GradeRepository gradeRepository;
-    // private final PasswordEncoder passwordEncoder; // Spring Security 사용 시 주입
+    private final PasswordEncoder passwordEncoder; // Spring Security 사용 시 주입
 
     /**
      * 회원가입
@@ -43,8 +45,8 @@ public class MemberService {
         // 3. 회원 엔티티 생성
         Member newMember = Member.builder()
                 .loginId(requestDto.getLoginId())
-                // .password(passwordEncoder.encode(requestDto.getPassword())) // 실제로는 비밀번호 암호화 필수!
-                .password(requestDto.getPassword()) // (임시) 암호화 로직 제외
+                .password(passwordEncoder.encode(requestDto.getPassword())) // 실제로는 비밀번호 암호화 필수!
+                //.password(requestDto.getPassword()) (임시) 암호화 로직 제외
                 .nickname(requestDto.getNickname())
                 .email(requestDto.getEmail())
                 .grade(defaultGrade)
@@ -73,11 +75,9 @@ public class MemberService {
     @Transactional
     public void updateNickname(Long memberId, MemberUpdateRequestDTO requestDto) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. ID: " + memberId));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-        // 엔티티의 비즈니스 메서드를 통해 닉네임 변경
-        // member.updateNickname(requestDto.getNickname());
-        // @Transactional에 의해 메서드 종료 시 자동으로 DB에 변경 감지(Dirty Checking) 및 업데이트
+        member.updateNickname(requestDto.getNickname()); // 주석 해제
     }
 
     /**
@@ -104,5 +104,18 @@ public class MemberService {
                 .emailVerified(member.getEmailVerified())
                 .createdAt(member.getCreatedAt())
                 .build();
+    }
+    
+    public MemberDTO login(String loginId, String rawPassword) {
+        Member member = memberRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 맞지 않습니다."));
+
+        // 암호화된 비밀번호와 입력된 비밀번호를 비교
+        if (!passwordEncoder.matches(rawPassword, member.getPassword())) {
+            throw new IllegalArgumentException("아이디 또는 비밀번호가 맞지 않습니다.");
+        }
+
+        // 로그인 성공 시 DTO로 변환하여 반환
+        return MemberDTO.fromEntity(member);
     }
 }

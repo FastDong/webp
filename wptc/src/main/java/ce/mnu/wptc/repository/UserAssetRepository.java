@@ -1,12 +1,15 @@
 package ce.mnu.wptc.repository;
 
-import ce.mnu.wptc.entity.Member;
-import ce.mnu.wptc.entity.UserAsset;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import java.util.List;
-import java.util.Optional;
+
+import ce.mnu.wptc.entity.Member;
+import ce.mnu.wptc.entity.Stock;
+import ce.mnu.wptc.entity.UserAsset;
 
 @Repository
 public interface UserAssetRepository extends JpaRepository<UserAsset, Long> {

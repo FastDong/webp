@@ -1,118 +1,33 @@
 <!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>로그인 | Banner</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: #222;
-            min-height: 100vh;
-            box-sizing: border-box;
-        }
-        .center-bg {
-            width: 100vw;
-            height: 100vh;
-            background: #25324a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .login-box {
-            background: #fff;
-            border-radius: 32px;
-            width: 360px;
-            padding: 48px 36px 28px 36px;
-            box-shadow: 0 0 0 8px #222;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .login-title {
-            font-size: 2.2rem;
-            font-weight: 600;
-            color: #ffe95c;
-            font-style: italic;
-            margin-bottom: 32px;
-        }
-        .login-form {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-        .login-form label {
-            font-size: 1rem;
-            color: #888;
-            margin-bottom: 2px;
-        }
-        .login-form input[type="text"],
-        .login-form input[type="password"] {
-            width: 100%;
-            border: none;
-            border-bottom: 2px solid #bbb;
-            background: transparent;
-            font-size: 1.1rem;
-            padding: 6px 0 4px 0;
-            margin-bottom: 10px;
-            outline: none;
-            color: #222;
-        }
-        .login-form input[type="text"]::placeholder,
-        .login-form input[type="password"]::placeholder {
-            color: #bbb;
-            font-style: italic;
-        }
-        .btn-group {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-        }
-        .btn {
-            width: 48%;
-            background: #4c6bbd;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 7px 0;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn:hover {
-            background: #35518a;
-        }
-    </style>
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        // 페이지 로드 완료 후 스크립트 실행 (DOMContentLoaded가 window.onload보다 빠름)
-        document.addEventListener('DOMContentLoaded', function() {
-            // 서버에서 전달된 loginError 메시지를 가져옴
-            // th:if를 사용해서 loginError가 있을 때만 이 스크립트 변수를 만들도록 할 수도 있음
-            var errorMessage = /*[[${loginError}]]*/ null;
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default_layout}">
 
-            if (errorMessage) {
-                alert(errorMessage);
-            }
-        });
-        /*]]>*/
-    </script>
-</head>
-<body>
-<div class="center-bg">
-    <div class="login-box">
-        <div class="login-title">Banner</div>
-        <form class="login-form" th:action="@{/siteuser/login}" method="post">
-            <input type="text" name="email" placeholder="ID" autocomplete="username" required>
-            <input type="password" name="passwd" placeholder="Password" autocomplete="current-password" required>
-            <div class="btn-group">
-                <button class="btn" type="button" onclick="location.href='/siteuser/signup'">회원가입</button>
-                <button class="btn" type="submit">로그인</button>
+<main layout:fragment="content">
+    <div class="form-container">
+        <h2>로그인</h2>
+        <div th:if="${param.error}" class="error-message">
+            아이디 또는 비밀번호가 올바르지 않습니다.
+        </div>
+        
+        <form th:action="@{/login}" method="post" class="form-box">
+            <div class="form-group">
+                <label for="username">로그인 ID</label>
+                <input type="text" id="username" name="username" autocomplete="username" required>
+
             </div>
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input type="password" id="password" name="password" autocomplete="current-password" required>
+            </div>
+            <button type="submit" class="button-primary">로그인</button>
         </form>
+        
+        <div class="extra-links" style="text-align: center; margin-top: 1rem;">
+            <span>아직 회원이 아니신가요? </span>
+            <a th:href="@{/members/signup}" style="color: #facc15; text-decoration: none;">회원가입</a>
+        </div>
+        
     </div>
-</div>
-</body>
+</main>
 </html>

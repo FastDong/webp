@@ -1,12 +1,14 @@
 package ce.mnu.wptc.repository;
 
-import ce.mnu.wptc.entity.Grade;
-import ce.mnu.wptc.entity.Member;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import java.util.Optional;
-import java.util.List;
+
+import ce.mnu.wptc.entity.Grade;
+import ce.mnu.wptc.entity.Member;
 
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {

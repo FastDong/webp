@@ -3,10 +3,17 @@ package ce.mnu.wptc.dto;
 import lombok.*;
 import java.math.BigDecimal;
 
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "USER_ASSET",
+uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"member_id", "stock_id"})
+})
 public class UserAssetDTO {
     private Long userAssetId;
     private Long memberId;

@@ -1,14 +1,31 @@
 package ce.mnu.wptc.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
 @Entity
-@Table(name = "MEMBER")
+@Table(name = "MEMBERS")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString(exclude = {"grade", "posts", "comments", "userAssets"})
 @AllArgsConstructor
 @Builder
 public class Member {
@@ -30,13 +47,15 @@ public class Member {
     @Column(name = "email", length = 100, nullable = false, unique = true)
     private String email;
 
+    @Builder.Default
     @Column(name = "point", nullable = false)
     private int point = 10000; // 기본 포인트 10000
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "grade_id", nullable = false)
     private Grade grade;
-
+    
+    @Builder.Default
     @Column(name = "email_verified", nullable = false)
     private Boolean emailVerified = false; // 기본값 false
 
@@ -64,7 +83,11 @@ public class Member {
     public void updateGrade(Grade newGrade) {
         this.grade = newGrade;
     }
-
+    
+    // Member.java
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
     // 이메일 인증 완료 메서드
     public void verifyEmail() {
         this.emailVerified = true;

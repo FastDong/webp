@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter // 자산 정보는 거래 시 변경되므로 Setter 허용
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString(exclude = {"member", "stock"})
 @AllArgsConstructor
 @Builder
 public class UserAsset {

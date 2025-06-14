@@ -1,13 +1,23 @@
 package ce.mnu.wptc.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import ce.mnu.wptc.dto.LoginRequestDTO;
 import ce.mnu.wptc.dto.MemberDTO;
 import ce.mnu.wptc.dto.MemberJoinRequestDTO;
 import ce.mnu.wptc.dto.MemberUpdateRequestDTO;
 import ce.mnu.wptc.service.MemberService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 @RestController // 이 클래스가 REST API 컨트롤러임을 명시
 @RequestMapping("/api/members") // 이 컨트롤러의 모든 메서드는 /api/members 경로를 기본으로 가짐
@@ -50,5 +60,16 @@ public class MemberController {
     public ResponseEntity<Void> deleteMember(@PathVariable("id") Long memberId) {
         memberService.deleteMember(memberId);
         return ResponseEntity.noContent().build();
+    }
+    
+    // MemberController.java
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginRequestDTO requestDTO, HttpSession session) {
+        MemberDTO member = memberService.login(requestDTO.getLoginId(), requestDTO.getPassword());
+        
+        // 세션에는 ID만 저장
+        session.setAttribute("memberId", member.getMemberId());
+
+        return ResponseEntity.ok("로그인 성공");
     }
 }

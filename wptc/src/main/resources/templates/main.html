@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default_layout}">
+
+<main layout:fragment="content">
+    <div class="container">
+        <div class="main-content">
+            <h2>최신 게시글</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>번호</th>
+                    <th>작성자</th>
+                    <th>제목</th>
+                    <th>작성일</th>
+                    <th>조회수</th>
+                    <th>댓글수</th>
+                </tr>
+                </thead>
+                <tbody th:if="${not #lists.isEmpty(posts)}">
+                    <tr th:each="post : ${posts}">
+                        <td th:text="${post.postId}"></td>
+                        <td th:text="${post.authorNickname}"></td>
+                        <td><a th:href="@{/posts/{id}(id=${post.postId})}" th:text="${post.title}"></a></td>
+                        <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></td>
+                        <td th:text="${post.viewCount}"></td>
+                        <td th:text="${post.commentCount}"></td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        <aside class="sidebar">
+            <h3>내 정보</h3>
+            <div th:if="${currentUser != null}">
+                <p>등급: <span th:text="${currentUser.gradeName}"></span></p>
+                <p>포인트: <span th:text="${currentUser.point}"></span></p>
+            </div>
+        </aside>
+    </div>
+</main>
+</html>

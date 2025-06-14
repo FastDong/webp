@@ -1,6 +1,9 @@
 package ce.mnu.wptc.repository;
 
+import ce.mnu.wptc.entity.Comment;
 import ce.mnu.wptc.entity.Member;
+import ce.mnu.wptc.entity.Post;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

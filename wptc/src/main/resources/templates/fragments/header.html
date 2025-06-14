@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <header th:fragment="headerFragment">
+        <div class="banner">WPTC</div>
+        <nav class="main-nav">
+            <a th:href="@{/}">게시판</a>
+            <a th:href="@{/stocks}">주식</a>
+            <a th:href="@{/games}">게임</a>
+        </nav>
+        <div class="user-info">
+            <div th:if="${currentUser == null}">
+                <a th:href="@{/login}">로그인</a>
+                <a th:href="@{/members/signup}">회원가입</a>
+            </div>
+            <div th:if="${currentUser != null}">
+                <a th:href="@{/my-page}" th:text="|${currentUser.nickname}님|">내 정보</a>
+                <a th:href="@{/logout}">로그아웃</a>
+            </div>
+        </div>
+    </header>
+</body>
+</html>
