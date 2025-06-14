@@ -11,8 +11,10 @@ import ce.mnu.wptc.dto.MemberJoinRequestDTO;
 import ce.mnu.wptc.dto.MemberUpdateRequestDTO;
 import ce.mnu.wptc.entity.Grade;
 import ce.mnu.wptc.entity.Member;
+import ce.mnu.wptc.repository.CommentRepository;
 import ce.mnu.wptc.repository.GradeRepository;
 import ce.mnu.wptc.repository.MemberRepository;
+import ce.mnu.wptc.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 
 
@@ -21,9 +23,12 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true) // 기본적으로 읽기 전용 트랜잭션 설정
 public class MemberService {
 
-    private final MemberRepository memberRepository;
-    private final GradeRepository gradeRepository;
-    private final PasswordEncoder passwordEncoder; // Spring Security 사용 시 주입
+	// MemberService.java
+	private final MemberRepository memberRepository;
+	private final GradeRepository gradeRepository;
+	private final PostRepository postRepository; // 👈 추가
+	private final CommentRepository commentRepository; // 👈 추가
+	private final PasswordEncoder passwordEncoder;
 
     /**
      * 회원가입
@@ -63,11 +68,33 @@ public class MemberService {
     /**
      * 회원 정보 조회
      */
-    public MemberDTO getMemberInfo(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. ID: " + memberId));
-        return MemberDTO.fromEntity(member);
-    }
+ // MemberService.java
+
+ // 이 메서드가 호출될 때는 트랜잭션이 활성화된 상태입니다.
+	 public MemberDTO getMemberInfo(Long memberId) {
+	     // 1. 회원 기본 정보를 찾습니다.
+	     Member member = memberRepository.findById(memberId)
+	             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. ID: " + memberId));
+	
+	     // 2. 이 회원의 게시글 수와 댓글 수를 Repository에서 직접 조회합니다.
+	     long postCount = postRepository.countByMember(member);
+	     long commentCount = commentRepository.countByMember(member);
+	
+	     // 3. 모든 정보를 조합하여 DTO를 직접 생성하고 반환합니다.
+	     return MemberDTO.builder()
+	             .memberId(member.getMemberId())
+	             .loginId(member.getLoginId())
+	             .nickname(member.getNickname())
+	             .email(member.getEmail())
+	             .point(member.getPoint())
+	             .gradeId(member.getGrade().getGradeId())
+	             .gradeName(member.getGrade().getGradeName())
+	             .emailVerified(member.getEmailVerified())
+	             .createdAt(member.getCreatedAt())
+	             .postCount((int) postCount) // long을 int로 캐스팅
+	             .commentCount((int) commentCount) // long을 int로 캐스팅
+	             .build();
+	 }
 
     /**
      * 회원 정보 수정 (닉네임 변경)
