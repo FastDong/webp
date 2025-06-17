@@ -22,19 +22,18 @@ public class MainController {
 
     @GetMapping("/")
     public String mainPage(Model model, Principal principal) {
-        // 게시글 목록 조회
         Iterable<Post> iterable = postRepository.findAll();
         List<Post> postList = new ArrayList<>();
+        iterable.forEach(postList::add); // 실제 데이터 추가
         model.addAttribute("postList", postList);
-
 
         // 로그인한 회원 정보 조회 (로그인 안 했으면 null)
         if (principal != null) {
-            String email = principal.getName(); // 또는 username
+            String email = principal.getName();
             Member member = memberRepository.findByEmail(email).orElse(null);
             model.addAttribute("member", member);
         }
-
-        return "main"; // templates/main.html
+        return "main";
     }
+
 }

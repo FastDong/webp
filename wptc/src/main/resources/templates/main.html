@@ -59,7 +59,7 @@
               <td class="py-3 px-6 border-b">
                 <a th:href="@{/posts/{id}(id=${post.postId})}" th:text="${post.title}" class="text-blue-600 hover:underline">제목</a>
               </td>
-              <td class="py-3 px-6 border-b" th:text="${post.memberName}">작성자</td>
+              <td class="py-3 px-6 border-b" th:text="${post.member.name}">작성자</td>
               <td class="py-3 px-6 border-b" th:text="${post.postTime}">2025-06-17</td>
               <td class="py-3 px-6 border-b" th:text="${post.viewCount}">0</td>
               <td class="py-3 px-6 border-b" th:text="${post.replyCount}">0</td>
@@ -92,30 +92,30 @@
       </div>
     </div>
     <div class="flex-1 bg-white rounded-b-xl rounded-tr-xl shadow-2xl p-8 flex flex-col min-h-[500px]">
-      <!-- 로그인 상태: 내정보 -->
-      <div sec:authorize="isAuthenticated()" class="h-full flex flex-col justify-between">
-        <div>
-          <div class="flex justify-between mb-2">
-            <span class="text-gray-600 text-base">ID</span>
-            <span class="text-gray-600 text-base">등급</span>
-          </div>
-          <div class="flex justify-between mb-2">
-            <span class="text-gray-800 text-lg font-semibold" th:text="${member.name}">user01</span>
-            <span class="text-blue-600 text-lg font-semibold" th:text="${member.rank}">Bronze</span>
-          </div>
-          <div class="flex justify-between mb-2">
-            <span class="text-gray-600 text-base">보유 포인트</span>
-            <span class="text-green-600 text-xl font-bold" th:text="${member.point}">10000</span>
-          </div>
-          <div class="flex justify-between text-gray-500 text-sm mt-4">
-            <span>작성한 게시글 수: <span class="font-semibold" th:text="${member.postCount}">0</span></span>
-            <span>작성한 댓글 수: <span class="font-semibold" th:text="${member.commentCount}">0</span></span>
-          </div>
-        </div>
-        <form th:action="@{/logout}" method="post" class="mt-8">
-          <button type="submit" class="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors">로그아웃</button>
-        </form>
-      </div>
+     <!-- 로그인 상태: 내정보 -->
+		<div sec:authorize="isAuthenticated()" th:if="${member != null}" class="h-full flex flex-col justify-between">
+		  <div>
+		    <div class="flex justify-between mb-2">
+		      <span class="text-gray-600 text-base">ID</span>
+		      <span class="text-gray-600 text-base">등급</span>
+		    </div>
+		    <div class="flex justify-between mb-2">
+		      <span class="text-gray-800 text-lg font-semibold" th:text="${member?.name ?: ''}">user01</span>
+		      <span class="text-blue-600 text-lg font-semibold" th:text="${member?.rank ?: ''}">Bronze</span>
+		    </div>
+		    <div class="flex justify-between mb-2">
+		      <span class="text-gray-600 text-base">보유 포인트</span>
+		      <span class="text-green-600 text-xl font-bold" th:text="${member?.point ?: 0}">10000</span>
+		    </div>
+		    <div class="flex justify-between text-gray-500 text-sm mt-4">
+		      <span>작성한 게시글 수: <span class="font-semibold" th:text="${member?.postCount ?: 0}">0</span></span>
+		      <span>작성한 댓글 수: <span class="font-semibold" th:text="${member?.commentCount ?: 0}">0</span></span>
+		    </div>
+		  </div>
+		  <form th:action="@{/logout}" method="post" class="mt-8">
+		    <button type="submit" class="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors">로그아웃</button>
+		  </form>
+		</div>
       <!-- 비로그인 상태: 로그인폼 -->
       <div sec:authorize="!isAuthenticated()" class="h-full flex flex-col justify-center">
         <form th:action="@{/login}" method="post" class="space-y-4">
