@@ -54,10 +54,14 @@
             <div th:if="${param.error}" class="text-red-500 text-sm text-center">
                 회원가입에 실패했습니다. 입력값을 확인하세요.
             </div>
+            <!-- 기존 에러 메시지 아래에 추가 -->
+            <div th:if="${emailError}" class="text-red-500 text-sm text-center">
+                <span th:text="${emailError}">이미 사용 중인 이메일입니다.</span>
+            </div>
         </form>
         <div class="mt-6 text-center">
             <span class="text-gray-600">이미 계정이 있으신가요?</span>
-            <a th:href="@{/members/main}" class="text-blue-600 hover:text-blue-800 font-semibold ml-2 transition-colors">로그인</a>
+            <a th:href="@{/}" class="text-blue-600 hover:text-blue-800 font-semibold ml-2 transition-colors">로그인</a>
         </div>
     </div>
 </div>

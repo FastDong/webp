@@ -165,5 +165,8 @@
     });
   });
 </script>
+<script th:if="${signupSuccess}" th:inline="javascript">
+  alert([[${signupSuccess}]]);
+</script>
 </body>
 </html>
