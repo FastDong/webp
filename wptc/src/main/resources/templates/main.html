@@ -39,38 +39,51 @@
     <!-- 콘텐츠 카드 -->
     <div class="flex-1 bg-white rounded-b-xl rounded-tr-xl shadow-2xl p-8 min-h-[500px]">
       <!-- 게시판 -->
-      <div id="tab-board" class="tab-content">
-        <h2 class="text-2xl font-bold mb-6 text-gray-800">게시판</h2>
-        <div class="overflow-auto">
-          <table class="w-full text-left border-collapse">
-            <thead class="bg-gray-50">
-            <tr>
-              <th class="py-3 px-6 border-b font-semibold text-gray-700">번호</th>
-              <th class="py-3 px-6 border-b font-semibold text-gray-700">제목</th>
-              <th class="py-3 px-6 border-b font-semibold text-gray-700">작성자</th>
-              <th class="py-3 px-6 border-b font-semibold text-gray-700">작성일</th>
-              <th class="py-3 px-6 border-b font-semibold text-gray-700">조회수</th>
-              <th class="py-3 px-6 border-b font-semibold text-gray-700">댓글수</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="post, stat : ${postList}" class="hover:bg-gray-50">
-              <td class="py-3 px-6 border-b" th:text="${post.postId}">1</td>
-              <td class="py-3 px-6 border-b">
-                <a th:href="@{/posts/{id}(id=${post.postId})}" th:text="${post.title}" class="text-blue-600 hover:underline">제목</a>
-              </td>
-              <td class="py-3 px-6 border-b" th:text="${post.member.name}">작성자</td>
-              <td class="py-3 px-6 border-b" th:text="${post.postTime}">2025-06-17</td>
-              <td class="py-3 px-6 border-b" th:text="${post.viewCount}">0</td>
-              <td class="py-3 px-6 border-b" th:text="${post.replyCount}">0</td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(postList)}">
-              <td colspan="6" class="text-center text-gray-400 py-8">게시글이 없습니다.</td>
-            </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+		<div id="tab-board" class="tab-content">
+		  <h2 class="text-2xl font-bold mb-6 text-gray-800">게시판</h2>
+		  <div class="overflow-auto">
+		    <table class="w-full text-left border-collapse">
+		      <thead class="bg-gray-50">
+		      <tr>
+		        <th class="py-3 px-6 border-b font-semibold text-gray-700">번호</th>
+		        <th class="py-3 px-6 border-b font-semibold text-gray-700">제목</th>
+		        <th class="py-3 px-6 border-b font-semibold text-gray-700">작성자</th>
+		        <th class="py-3 px-6 border-b font-semibold text-gray-700">작성일</th>
+		        <th class="py-3 px-6 border-b font-semibold text-gray-700">조회수</th>
+		        <th class="py-3 px-6 border-b font-semibold text-gray-700">댓글수</th>
+		      </tr>
+		      </thead>
+		      <tbody>
+		      <tr th:each="post, stat : ${postPage.content}" class="hover:bg-gray-50">
+		        <td class="py-3 px-6 border-b" th:text="${post.postId}">1</td>
+		        <td class="py-3 px-6 border-b">
+		          <a th:href="@{/posts/{id}(id=${post.postId})}" th:text="${post.title}" class="text-blue-600 hover:underline">제목</a>
+		        </td>
+		        <td class="py-3 px-6 border-b" th:text="${post.member.name}">작성자</td>
+		        <td class="py-3 px-6 border-b" th:text="${post.postTime}">2025-06-17</td>
+		        <td class="py-3 px-6 border-b" th:text="${post.viewCount}">0</td>
+		        <td class="py-3 px-6 border-b" th:text="${post.replyCount}">0</td>
+		      </tr>
+		      <tr th:if="${#lists.isEmpty(postPage.content)}">
+		        <td colspan="6" class="text-center text-gray-400 py-8">게시글이 없습니다.</td>
+		      </tr>
+		      </tbody>
+		    </table>
+		  </div>
+		  <!-- 페이징 네비게이션 -->
+		  <div class="flex justify-center mt-6 gap-2">
+		    <a th:if="${postPage.hasPrevious()}" th:href="@{/(page=${postPage.number - 1})}"
+		       class="px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300">이전</a>
+		    <span th:each="i : ${#numbers.sequence(0, postPage.totalPages - 1)}">
+		      <a th:href="@{/(page=${i})}"
+		         th:text="${i + 1}"
+		         th:classappend="${i == postPage.number} ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'"
+		         class="px-3 py-1 rounded mx-1 hover:bg-blue-200"></a>
+		    </span>
+		    <a th:if="${postPage.hasNext()}" th:href="@{/(page=${postPage.number + 1})}"
+		       class="px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300">다음</a>
+		  </div>
+		</div>
       <!-- 주식 -->
       <div id="tab-stock" class="tab-content hidden">
         <h2 class="text-2xl font-bold mb-6 text-gray-800">주식</h2>
@@ -87,13 +100,13 @@
   <div class="w-[400px] flex-shrink-0 flex flex-col">
     <div class="flex">
       <div class="bg-white rounded-t-xl px-8 py-3 font-bold text-main-bg text-xl -mb-1 shadow-lg border-b-4 border-main-bg">
-        <span sec:authorize="isAuthenticated()">내정보</span>
-        <span sec:authorize="!isAuthenticated()">로그인</span>
+         <span th:if="${member != null}">내정보</span>
+  		 <span th:if="${member == null}">로그인</span>
       </div>
     </div>
     <div class="flex-1 bg-white rounded-b-xl rounded-tr-xl shadow-2xl p-8 flex flex-col min-h-[500px]">
      <!-- 로그인 상태: 내정보 -->
-		<div sec:authorize="isAuthenticated()" th:if="${member != null}" class="h-full flex flex-col justify-between">
+		<div th:if="${member != null}" class="h-full flex flex-col justify-between">
 		  <div>
 		    <div class="flex justify-between mb-2">
 		      <span class="text-gray-600 text-base">ID</span>
@@ -109,7 +122,7 @@
 		    </div>
 		    <div class="flex justify-between text-gray-500 text-sm mt-4">
 		      <span>작성한 게시글 수: <span class="font-semibold" th:text="${member?.postCount ?: 0}">0</span></span>
-		      <span>작성한 댓글 수: <span class="font-semibold" th:text="${member?.commentCount ?: 0}">0</span></span>
+		      <span>작성한 댓글 수: <span class="font-semibold" th:text="${member?.replyCount ?: 0}">0</span></span>
 		    </div>
 		  </div>
 		  <form th:action="@{/logout}" method="post" class="mt-8">
@@ -117,10 +130,10 @@
 		  </form>
 		</div>
       <!-- 비로그인 상태: 로그인폼 -->
-      <div sec:authorize="!isAuthenticated()" class="h-full flex flex-col justify-center">
+      <div th:if="${member == null}" class="h-full flex flex-col justify-center">
         <form th:action="@{/login}" method="post" class="space-y-4">
           <div>
-            <label for="eamil" class="block text-gray-700 font-semibold mb-2">아이디</label>
+            <label for="email" class="block text-gray-700 font-semibold mb-2">아이디</label>
             <input type="text" id="email" name="email"
                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                    placeholder="아이디를 입력하세요" required>
@@ -166,7 +179,7 @@
   });
 </script>
 <script th:if="${signupSuccess}" th:inline="javascript">
-  alert([[${signupSuccess}]]);
+  alert("성공");
 </script>
 </body>
 </html>

@@ -6,6 +6,9 @@ import ce.mnu.wptc.entity.Post;
 import ce.mnu.wptc.repository.PostRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,19 +28,15 @@ public class MainController {
     private final MemberRepository memberRepository;
 
     @GetMapping("/")
-    public String mainPage(Model model, HttpSession session) {
-        Iterable<Post> iterable = postRepository.findAll();
-        List<Post> postList = new ArrayList<>();
-        iterable.forEach(postList::add);
-        model.addAttribute("postList", postList);
+    public String mainPage(Model model, HttpSession session,
+                           @RequestParam(defaultValue = "0") int page) {
+        Page<Post> postPage = postRepository.findAll(PageRequest.of(page, 3));
+        model.addAttribute("postPage", postPage);
 
-        // 세션에서 로그인 정보 꺼내기
         Member member = (Member) session.getAttribute("loginMember");
         model.addAttribute("member", member);
-
         return "main";
     }
-
     
     @PostMapping("/login")
     public String login(@RequestParam String email,
