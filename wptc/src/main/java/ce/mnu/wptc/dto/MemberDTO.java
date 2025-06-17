@@ -7,6 +7,6 @@ public class MemberDTO {
 	String name;
 	String email;
 	String passwd;
-	long print;
+	long point;
 	String rank;
 }
