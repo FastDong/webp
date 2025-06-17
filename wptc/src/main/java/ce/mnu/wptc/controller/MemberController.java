@@ -33,12 +33,20 @@ public class MemberController {
         long postCount = 0;
         long replyCount = 0;
 
+
+        // 이메일 중복 체크
+        if(memberRepository.findByEmail(email).isPresent()) {
+            redirectAttributes.addFlashAttribute("emailError", "이미 사용 중인 이메일입니다.");
+            return "redirect:/signup";
+        }
+
+
         // Member 객체 생성 및 저장
         Member member = new Member(name, email, passwd, point, rank, postCount, replyCount);
         memberRepository.save(member);
 
-        // 알림 메시지 전달
-        redirectAttributes.addFlashAttribute("signupSuccess", "회원가입이 완료되었습니다!");
+        // 성공 메시지 추가
+        redirectAttributes.addFlashAttribute("signupSuccess", "회원가입을 축하합니다! 🎉");
 
         // 회원가입 후 메인 페이지로 리다이렉트
         return "redirect:/";
