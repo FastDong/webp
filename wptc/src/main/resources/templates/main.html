@@ -49,19 +49,23 @@
               <th class="py-3 px-6 border-b font-semibold text-gray-700">제목</th>
               <th class="py-3 px-6 border-b font-semibold text-gray-700">작성자</th>
               <th class="py-3 px-6 border-b font-semibold text-gray-700">작성일</th>
+              <th class="py-3 px-6 border-b font-semibold text-gray-700">조회수</th>
+              <th class="py-3 px-6 border-b font-semibold text-gray-700">댓글수</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="post, stat : ${postList}" class="hover:bg-gray-50">
-              <td class="py-3 px-6 border-b" th:text="${stat.count}">1</td>
+              <td class="py-3 px-6 border-b" th:text="${post.postId}">1</td>
               <td class="py-3 px-6 border-b">
-                <a th:href="@{/posts/{id}(id=${post.id})}" th:text="${post.title}" class="text-blue-600 hover:underline">제목</a>
+                <a th:href="@{/posts/{id}(id=${post.postId})}" th:text="${post.title}" class="text-blue-600 hover:underline">제목</a>
               </td>
-              <td class="py-3 px-6 border-b" th:text="${post.author}">작성자</td>
-              <td class="py-3 px-6 border-b" th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}">2025-06-17</td>
+              <td class="py-3 px-6 border-b" th:text="${post.memberName}">작성자</td>
+              <td class="py-3 px-6 border-b" th:text="${post.postTime}">2025-06-17</td>
+              <td class="py-3 px-6 border-b" th:text="${post.viewCount}">0</td>
+              <td class="py-3 px-6 border-b" th:text="${post.replyCount}">0</td>
             </tr>
             <tr th:if="${#lists.isEmpty(postList)}">
-              <td colspan="4" class="text-center text-gray-400 py-8">게시글이 없습니다.</td>
+              <td colspan="6" class="text-center text-gray-400 py-8">게시글이 없습니다.</td>
             </tr>
             </tbody>
           </table>
@@ -96,8 +100,8 @@
             <span class="text-gray-600 text-base">등급</span>
           </div>
           <div class="flex justify-between mb-2">
-            <span class="text-gray-800 text-lg font-semibold" th:text="${member.loginId}">user01</span>
-            <span class="text-blue-600 text-lg font-semibold" th:text="${member.gradeName}">Bronze</span>
+            <span class="text-gray-800 text-lg font-semibold" th:text="${member.name}">user01</span>
+            <span class="text-blue-600 text-lg font-semibold" th:text="${member.rank}">Bronze</span>
           </div>
           <div class="flex justify-between mb-2">
             <span class="text-gray-600 text-base">보유 포인트</span>
@@ -139,7 +143,7 @@
         </form>
         <div class="mt-6 text-center">
           <span class="text-gray-600">아직 회원이 아니신가요?</span>
-          <a th:href="@{/members/signup}" class="text-blue-600 hover:text-blue-800 font-semibold ml-2 transition-colors">회원가입</a>
+          <a th:href="@{/signup}" class="text-blue-600 hover:text-blue-800 font-semibold ml-2 transition-colors">회원가입</a>
         </div>
       </div>
     </div>

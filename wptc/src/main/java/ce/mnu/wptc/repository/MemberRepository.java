@@ -1,9 +1,10 @@
 package ce.mnu.wptc.repository;
 
-import org.springframework.data.repository.CrudRepository;
-
 import ce.mnu.wptc.entity.Member;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface MemberRepository extends CrudRepository<Member, Long>{
+import java.util.Optional;
 
+public interface MemberRepository extends JpaRepository<Member, Long> {
+    Optional<Member> findByEmail(String email);
 }
