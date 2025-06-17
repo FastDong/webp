@@ -30,9 +30,11 @@ public class MemberController {
         // point와 rank는 기본값으로 설정
         long point = 10000;
         String rank = "일반";
+        long postCount = 0;
+        long replyCount = 0;
 
         // Member 객체 생성 및 저장
-        Member member = new Member(name, email, passwd, point, rank);
+        Member member = new Member(name, email, passwd, point, rank, postCount, replyCount);
         memberRepository.save(member);
 
         // 알림 메시지 전달

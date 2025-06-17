@@ -19,15 +19,20 @@ public class Member {
 	@Column(unique = true)
 	private String email;
 	private String passwd;
+	
 	private long point = 10000;
 	private String rank;
+	private long postCount = 0;
+	private long replyCount = 0;
 	
-	public Member(String name, String email, String passwd, long point, String rank) {
+	public Member(String name, String email, String passwd, long point, String rank, long postCount, long replyCount) {
 		this.name = name;
 		this.email = email;
 		this.passwd = passwd;
 		this.point = point;
 		this.rank = rank;
+		this.postCount = postCount;
+		this.replyCount = replyCount;
 	}
 	
 }

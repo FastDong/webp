@@ -4,14 +4,18 @@ import ce.mnu.wptc.entity.Member;
 import ce.mnu.wptc.repository.MemberRepository;
 import ce.mnu.wptc.entity.Post;
 import ce.mnu.wptc.repository.PostRepository;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
@@ -21,19 +25,51 @@ public class MainController {
     private final MemberRepository memberRepository;
 
     @GetMapping("/")
-    public String mainPage(Model model, Principal principal) {
+    public String mainPage(Model model, HttpSession session) {
         Iterable<Post> iterable = postRepository.findAll();
         List<Post> postList = new ArrayList<>();
-        iterable.forEach(postList::add); // 실제 데이터 추가
+        iterable.forEach(postList::add);
         model.addAttribute("postList", postList);
 
-        // 로그인한 회원 정보 조회 (로그인 안 했으면 null)
-        if (principal != null) {
-            String email = principal.getName();
-            Member member = memberRepository.findByEmail(email).orElse(null);
-            model.addAttribute("member", member);
-        }
+        // 세션에서 로그인 정보 꺼내기
+        Member member = (Member) session.getAttribute("loginMember");
+        model.addAttribute("member", member);
+
         return "main";
     }
+
+    
+    @PostMapping("/login")
+    public String login(@RequestParam String email,
+                        @RequestParam String password,
+                        HttpSession session,
+                        Model model) {
+        Optional<Member> optionalMember = memberRepository.findByEmail(email);
+        if (optionalMember.isPresent() && optionalMember.get().getPasswd().equals(password)) {
+            session.setAttribute("loginMember", optionalMember.get());
+            return "redirect:/";
+        } else {
+            model.addAttribute("loginError", true);
+            return "main";
+        }
+    }
+
+
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/";
+    }
+
+    @GetMapping("/some-protected-page")
+    public String protectedPage(HttpSession session) {
+        if (session.getAttribute("loginMember") == null) {
+            return "redirect:/"; // 로그인 안 했으면 메인으로
+        }
+        // 로그인 되어 있으면 페이지 반환
+        return "protected";
+    }
+
+
 
 }
