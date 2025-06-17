@@ -9,4 +9,6 @@ public class MemberDTO {
 	String passwd;
 	long point;
 	String rank;
+	long postCount;
+	long replyCount;
 }
