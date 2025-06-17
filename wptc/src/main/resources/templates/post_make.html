@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>게시글 작성</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'main-bg': '#232b39',
+                        'banner-yellow': '#facc15'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Toast UI Editor CDN -->
+    <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" />
+    <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+</head>
+<body class="bg-main-bg min-h-screen flex flex-col items-center justify-center">
+<!-- 상단 네비 -->
+<nav class="w-full flex items-center justify-between px-10 py-5 bg-main-bg">
+    <a th:href="@{/}" class="text-banner-yellow text-3xl italic font-extrabold tracking-wide hover:underline">Banner</a>
+    <div>
+      <span sec:authorize="isAuthenticated()" class="flex items-center gap-2">
+        <span class="text-white font-bold text-base" th:text="${member.loginId}">user01</span>
+        <span class="text-blue-300 font-semibold text-sm" th:text="${member.gradeName}">Bronze</span>
+      </span>
+        <span sec:authorize="!isAuthenticated()">
+        <a th:href="@{/members/login}" class="bg-blue-500 text-white px-3 py-1 rounded-md font-semibold text-sm hover:bg-blue-600 transition-colors">로그인</a>
+      </span>
+    </div>
+</nav>
+
+<!-- 게시글 작성 카드 -->
+<div class="w-full flex justify-center mt-10">
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-12">
+        <h1 class="text-2xl font-bold text-gray-800 mb-8 text-center">게시글 작성</h1>
+        <form th:action="@{/posts/new}" method="post" enctype="multipart/form-data" class="space-y-8" onsubmit="return copyEditorContent();">
+            <!-- 제목 입력 -->
+            <div>
+                <label for="title" class="block text-gray-700 font-semibold mb-2">제목</label>
+                <input type="text" id="title" name="title"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                       placeholder="제목을 입력하세요" required>
+            </div>
+            <!-- Toast UI Editor 영역 -->
+            <div>
+                <label class="block text-gray-700 font-semibold mb-2">내용</label>
+                <div id="editor" class="bg-white"></div>
+                <!-- 실제 제출될 내용이 담길 hidden input -->
+                <input type="hidden" name="content" id="content-input">
+            </div>
+            <!-- 이미지 업로드 (추가 첨부 이미지용) -->
+            <div>
+                <label for="image" class="block text-gray-700 font-semibold mb-2">이미지 첨부</label>
+                <input type="file" id="image" name="imageFiles" accept="image/*" multiple
+                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                <div id="preview" class="flex flex-wrap gap-4 mt-4"></div>
+            </div>
+            <!-- 버튼 -->
+            <div class="flex justify-center gap-4 mt-8">
+                <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">등록</button>
+                <a th:href="@{/}" class="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">취소</a>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- Toast UI Editor 초기화 및 폼 제출 스크립트 -->
+<script>
+    // Toast UI Editor 초기화
+    const editor = new toastui.Editor({
+        el: document.querySelector('#editor'),
+        height: '400px',
+        initialEditType: 'wysiwyg',
+        previewStyle: 'vertical',
+        hooks: {
+            addImageBlobHook: (blob, callback) => {
+                // 이미지 업로드 커스텀(백엔드 연동 필요, 여기선 base64로 미리보기)
+                const reader = new FileReader();
+                reader.onload = () => callback(reader.result, blob.name);
+                reader.readAsDataURL(blob);
+                return false; // 서버 업로드 시 true로 변경
+            }
+        }
+    });
+
+    // 폼 제출 시 에디터 내용을 hidden input에 복사
+    function copyEditorContent() {
+        document.getElementById('content-input').value = editor.getHTML();
+        return true;
+    }
+
+    // 이미지 미리보기 (추가 첨부 이미지)
+    document.getElementById('image').addEventListener('change', function(event) {
+        const preview = document.getElementById('preview');
+        preview.innerHTML = '';
+        Array.from(event.target.files).forEach(file => {
+            if (!file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'w-24 h-24 object-cover rounded-lg border';
+                preview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+</script>
+</body>
+</html>
