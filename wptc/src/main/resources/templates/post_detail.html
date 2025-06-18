@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko"
       xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8" />
     <title th:text="${post.title}">게시글 상세</title>
@@ -47,6 +46,19 @@
 <!-- 게시글 상세 카드 -->
 <div class="w-full flex justify-center items-center min-h-[80vh]">
     <div class="w-full max-w-5xl bg-white rounded-2xl shadow-xl p-16">
+		<div th:if="${member != null and post.member.memberId == member.memberId}" class="flex justify-end mb-2">
+			<a th:href="@{/posts/{id}/edit(id=${post.postId})}"
+			   class="bg-yellow-300 hover:bg-yellow-400 text-gray-800 text-xs px-3 py-1 rounded font-semibold shadow transition">
+				✏️ 수정
+			</a>
+			<!-- 삭제 버튼 -->
+			<form th:action="@{/posts/{id}/delete(id=${post.postId})}" method="post" onsubmit="return confirm('정말로 삭제하시겠습니까?');" class="inline">
+				<button type="submit"
+						class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded font-semibold shadow transition">
+					🗑️ 삭제
+				</button>
+			</form>
+		</div>
         <!-- 제목/정보 -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
             <h1 class="text-2xl font-bold text-gray-800 mb-2 md:mb-0" th:text="${post.title}">게시글 제목</h1>
@@ -57,7 +69,7 @@
             </div>
         </div>
         <!-- 본문 -->
-        <div class="border-t border-b py-10 text-gray-700 text-lg min-h-[350px]" th:text="${post.contents}">
+        <div class="border-t border-b py-10 text-gray-700 text-lg min-h-[350px]" th:utext="${post.contents}">
             게시글 내용이 여기에 표시됩니다.
         </div>	
 		<!-- 댓글 목록 -->

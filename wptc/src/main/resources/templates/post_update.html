@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>게시글 수정</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'main-bg': '#232b39',
+            'banner-yellow': '#facc15'
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Toast UI Editor CDN -->
+  <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" />
+  <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+</head>
+<body class="bg-main-bg min-h-screen flex flex-col items-center justify-center">
+<!-- 상단 네비 -->
+<nav class="w-full flex items-center justify-between px-10 py-5 bg-main-bg">
+  <a th:href="@{/}" class="text-banner-yellow text-3xl italic font-extrabold tracking-wide hover:underline">Banner</a>
+  <div>
+      <span sec:authorize="isAuthenticated()" class="flex items-center gap-2">
+        <span class="text-white font-bold text-base" th:text="${member.name}">user01</span>
+        <span class="text-blue-300 font-semibold text-sm" th:text="${member.rank}">Bronze</span>
+      </span>
+  </div>
+</nav>
+
+<!-- 게시글 수정 카드 -->
+<div class="w-full flex justify-center mt-10">
+  <div class="w-[calc(100vw-20px)] mx-[10px] bg-white rounded-2xl shadow-xl p-12">
+    <h1 class="text-2xl font-bold text-gray-800 mb-8 text-center">게시글 수정</h1>
+    <form th:action="@{/posts/{id}/edit(id=${post.postId})}" method="post" class="space-y-10" onsubmit="return copyEditorContent();">
+      <!-- 제목 입력 -->
+      <div>
+        <label for="title" class="block text-gray-700 font-semibold mb-2 text-lg">제목</label>
+        <input type="text" id="title" name="title"
+               class="w-full px-6 py-4 text-xl border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+               placeholder="제목을 입력하세요" required
+               th:value="${post.title}">
+      </div>
+      <!-- Toast UI Editor (내용 입력) -->
+      <div>
+        <label class="block text-gray-700 font-semibold mb-2 text-lg">내용</label>
+        <div id="editor" class="bg-white w-full min-h-[400px]"></div>
+        <input type="hidden" name="content" id="content-input">
+        <!-- 기존 내용을 JS로 넘기기 위한 hidden 태그 -->
+        <input type="hidden" id="origin-content" th:value="${post.contents}">
+      </div>
+      <!-- 버튼 -->
+      <div class="flex justify-center gap-6 mt-10">
+        <button type="submit" class="bg-blue-600 text-white px-12 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors">수정</button>
+        <a th:href="@{/posts/{id}(id=${post.postId})}" class="bg-gray-200 text-gray-700 px-12 py-4 rounded-lg text-lg font-semibold hover:bg-gray-300 transition-colors">취소</a>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Toast UI Editor 초기화 및 폼 제출 스크립트 -->
+<script>
+  // Thymeleaf에서 기존 내용을 가져옴
+  const originContent = document.getElementById('origin-content').value;
+
+  // Toast UI Editor 초기화
+  const editor = new toastui.Editor({
+    el: document.querySelector('#editor'),
+    height: '500px',
+    initialEditType: 'wysiwyg',
+    hideModeSwitch: true,
+    previewStyle: 'vertical',
+    toolbarItems: [
+      ['heading', 'bold', 'italic', 'strike'],
+      ['hr'],
+      ['ul', 'ol', 'task', 'indent', 'outdent'],
+      ['scrollSync']
+    ],
+    initialValue: originContent // 기존 내용 세팅
+  });
+
+  // 폼 제출 시 에디터 내용을 hidden input에 복사
+  function copyEditorContent() {
+    document.getElementById('content-input').value = editor.getHTML();
+    return true;
+  }
+</script>
+</body>
+</html>

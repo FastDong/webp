@@ -1,5 +1,6 @@
 package ce.mnu.wptc.controller;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -7,7 +8,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import ce.mnu.wptc.service.MemberService;
+import ce.mnu.wptc.service.PostService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -16,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import ce.mnu.wptc.entity.Member;
@@ -30,13 +36,21 @@ public class PostController {
     private final PostRepository postRepository;
     private final ReplyRepository replyRepository;
     private final MemberRepository memberRepository;
+    private final PostService postService;
+    private final MemberService memberService;
 
     @Autowired
-    public PostController(PostRepository postRepository, ReplyRepository replyRepository, MemberRepository memberRepository) {
+    public PostController(PostRepository postRepository, ReplyRepository replyRepository, MemberRepository memberRepository, PostService postService, MemberService memberService) {
         this.postRepository = postRepository;
         this.replyRepository = replyRepository;
         this.memberRepository = memberRepository;
+        this.postService = postService;
+        this.memberService = memberService;
     }
+
+
+
+
 
     @GetMapping("/posts/{id}")
     public String postDetail(@PathVariable Long id, Model model) {
@@ -162,5 +176,27 @@ public class PostController {
 
         String email = authentication.getName();
         return memberRepository.findByEmail(email);
+    }
+
+    @PostMapping("/posts/{id}/delete")
+    public String deletePost(@PathVariable Long id, Principal principal, RedirectAttributes redirectAttributes) {
+        // 1. 게시글 조회
+        Post post = postService.findById(id);
+
+        // 2. 현재 로그인한 사용자 정보 가져오기
+        // (principal.getName()이 username 또는 member_id라면 바로 사용, 아니라면 memberService 등으로 member_id 조회)
+        Member loginMember = memberService.findByEmail(principal.getName());
+
+        // 3. 게시글 작성자와 로그인한 사용자 비교
+        if (!post.getMember().getMemberId().equals(loginMember.getMemberId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "삭제 권한이 없습니다.");
+        }
+
+        // 4. 삭제
+        postService.delete(id);
+
+        redirectAttributes.addFlashAttribute("msg", "게시글이 성공적으로 삭제되었습니다!");
+
+        return "redirect:/";
     }
 }
