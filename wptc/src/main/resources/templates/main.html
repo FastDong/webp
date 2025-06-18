@@ -200,11 +200,9 @@
 				  </div>
 			  </div>
 		  </div>
-		</div>
-
-		  <form th:action="@{/logout}" method="post" class="mt-8">
-		    <button type="submit" class="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors">로그아웃</button>
-		  </form>
+			<form th:action="@{/logout}" method="post" class="mt-8">
+				<button type="submit" class="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors">로그아웃</button>
+			</form>
 		</div>
 
       <!-- 비로그인 상태: 로그인폼 -->
@@ -239,8 +237,6 @@
       </div>
     </div>
   </div>
-</div>
-
 <script>
 	// 탭 ID 배열
 	const tabs = ['board', 'stock', 'game'];
