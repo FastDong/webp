@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <title>메인 페이지</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta http-equiv="refresh" content="3">
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -83,17 +84,27 @@
 		       class="px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300">다음</a>
 		  </div>
 		</div>
-		<!-- 주식 (새로운 디자인 적용) -->
+		<!-- 주식 (변동성 표시 적용) -->
 		<div id="tab-stock" class="tab-content hidden">
 			<h2 class="text-2xl font-bold mb-6 text-gray-800">주식</h2>
 			<div class="space-y-4">
-
 				<!-- 주식 아이템 카드 (Thymeleaf 반복문) -->
 				<div th:each="stock : ${stockList}" class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-					<!-- 상단: 종목 정보 -->
+					<!-- 상단: 종목 정보 및 변동성 -->
 					<div class="flex items-center justify-between text-white p-4">
 						<span class="text-lg font-semibold" th:text="${stock.stockName}">종목명</span>
-						<span class="text-lg font-semibold" th:text="${#numbers.formatDecimal(stock.price, 0, 'COMMA', 0, 'POINT')} + '원'">가격</span>
+						<div class="flex items-center text-right">
+							<span class="text-lg font-semibold" th:text="${#numbers.formatDecimal(stock.price, 0, 'COMMA', 0, 'POINT')} + '원'">가격</span>
+							<!-- ✅ 변동성 표시 부분 -->
+							<div class="ml-4 w-28 text-sm"
+								 th:classappend="${stock.priceChangeAmount > 0 ? 'text-red-500' : (stock.priceChangeAmount < 0 ? 'text-blue-500' : 'text-gray-400')}">
+								<span th:text="${stock.priceChangeAmount >= 0 ? '▲' : '▼'}"></span>
+								<span th:text="${#numbers.formatDecimal(stock.priceChangeAmount, 0, 'COMMA', 0, 'POINT')}"></span>
+								<!-- 첫 번째 파라미터: 대상 숫자, 두 번째: 정수부 최소 자릿수, 세 번째: 소수부 자릿수 -->
+								<span class="block" th:text="'(' + ${#numbers.formatDecimal(stock.priceChangeRate, 1, 2)} + '%)'"></span>
+
+							</div>
+						</div>
 					</div>
 
 					<!-- 하단: 매수/매도 및 보유수량 (로그인 시) -->
