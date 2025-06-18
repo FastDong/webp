@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -67,16 +68,18 @@ public class MainController {
     public String login(@RequestParam String email,
                         @RequestParam String password,
                         HttpSession session,
-                        Model model) {
+                        RedirectAttributes redirectAttributes) {
         Optional<Member> optionalMember = memberRepository.findByEmail(email);
         if (optionalMember.isPresent() && optionalMember.get().getPasswd().equals(password)) {
             session.setAttribute("loginMember", optionalMember.get());
             return "redirect:/";
         } else {
-            model.addAttribute("loginError", true);
-            return "main";
+            redirectAttributes.addFlashAttribute("loginError", "아이디 또는 비밀번호가 올바르지 않습니다.");
+            return "redirect:/?error";
         }
     }
+
+
     @PostMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();

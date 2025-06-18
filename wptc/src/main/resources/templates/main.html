@@ -21,7 +21,7 @@
     }
   </script>
 </head>
-<body class="bg-main-bg min-h-screen w-full">
+<script th:src="@{/js/main.js}"></script><body class="bg-main-bg min-h-screen w-full">
 <!-- 배너 -->
 <div class="w-full bg-main-bg py-6">
   <div class="text-banner-yellow text-4xl italic font-bold text-center">Banner</div>
@@ -196,18 +196,18 @@
 					  <!-- 보유 주식 목록 반복 -->
 					  <div th:each="stock : ${ownedStockViewList}" class="p-2 rounded bg-gray-50">
 						  <div class="flex justify-between items-center font-semibold">
-							  <span class="text-gray-800" th:text="${stock.stockName}">삼성전자</span>
+							  <span class="text-gray-800" th:text="${stock.stockName}"></span>
 							  <!-- ✅ 평단가 표시 (새로 추가) -->
 							  <span class="text-xs text-black-500 font-semibold"
-									th:text="${@formatUtils.formatKoreanWon(stock.averagePurchasePrice)}">@ 83,000원</span>
+									th:text="${@formatUtils.formatKoreanWon(stock.averagePurchasePrice)}"></span>
 
-							  <span class="text-gray-600" th:text="${stock.quantity} + '주'">10주</span>
+							  <span class="text-gray-600" th:text="${stock.quantity} + '주'"></span>
 						  </div>
 						  <div class="flex justify-between items-center mt-1 text-xs"
 							   th:classappend="${stock.profitLossAmount > 0 ? 'text-red-600' : (stock.profitLossAmount < 0 ? 'text-blue-600' : 'text-gray-500')}">
 							  <!-- ✅ 두 번째 줄: 평가 금액 (새로 추가된 부분) -->
 							  <div class="flex justify-end items-center mt-1 text-gray-800 font-semibold">
-								  <span th:text="${@formatUtils.formatKoreanWon(stock.totalCurrentValue)}">850,000원</span>
+								  <span th:text="${@formatUtils.formatKoreanWon(stock.totalCurrentValue)}"></span>
 							  </div>
 							  <!-- 평가 손익 (부호 처리 수정) -->
 							  <span th:text="${(stock.profitLossAmount > 0 ? '+' : (stock.profitLossAmount < 0 ? '-' : '')) + @formatUtils.formatKoreanWon(T(java.lang.Math).abs(stock.profitLossAmount))}"></span>
@@ -224,15 +224,14 @@
 						  <span class="text-gray-800 font-bold">총 주식 평가액</span>
 						  <span class="text-lg font-bold"
 								th:classappend="${totalProfitLoss > 0 ? 'text-red-600' : (totalProfitLoss < 0 ? 'text-blue-600' : 'text-gray-800')}"
-								th:text="${@formatUtils.formatKoreanWon(totalStockValue)}">1,710,000원</span>
+								th:text="${@formatUtils.formatKoreanWon(totalStockValue)}"></span>
 					  </div>
 					  <!-- 2. 총 평가 손익 및 수익률 -->
 					  <div class="flex justify-end items-baseline space-x-2 text-sm mt-1">
-       		 <span th:classappend="${totalProfitLoss > 0 ? 'text-red-600' : (totalProfitLoss < 0 ? 'text-blue-600' : 'text-gray-500')}"
-			  th:text="${(totalProfitLoss > 0 ? '+' : (totalProfitLoss < 0 ? '-' : '')) + @formatUtils.formatKoreanWon(T(java.lang.Math).abs(totalProfitLoss))}">
-              +60,000원</span>
+       		 			<span th:classappend="${totalProfitLoss > 0 ? 'text-red-600' : (totalProfitLoss < 0 ? 'text-blue-600' : 'text-gray-500')}"
+							  th:text="${(totalProfitLoss > 0 ? '+' : (totalProfitLoss < 0 ? '-' : '')) + @formatUtils.formatKoreanWon(T(java.lang.Math).abs(totalProfitLoss))}"></span>
 						  <span th:classappend="${totalProfitLoss > 0 ? 'text-red-600' : (totalProfitLoss < 0 ? 'text-blue-600' : 'text-gray-500')}"
-								th:text="'(' + ${#numbers.formatDecimal(totalProfitLossRate, 1, 2)} + '%)'">(+3.64%)</span>
+								th:text="'(' + ${#numbers.formatDecimal(totalProfitLossRate, 1, 2)} + '%)'"></span>
 					  </div>
 				  </div>
 			  </div>
@@ -263,9 +262,9 @@
             <a th:href="@{/members/find-pw}" class="text-gray-500 hover:text-blue-600 transition-colors">비밀번호 찾기</a>
           </div>
           <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">로그인</button>
-          <div th:if="${param.error}" class="text-red-500 text-sm text-center">
-            아이디 또는 비밀번호가 올바르지 않습니다.
-          </div>
+			<div th:if="${param.error}" class="text-red-500 text-sm text-center font-semibold">
+				<span th:text="${loginError}">아이디 또는 비밀번호가 올바르지 않습니다.</span>
+			</div>
         </form>
         <div class="mt-6 text-center">
           <span class="text-gray-600">아직 회원이 아니신가요?</span>
@@ -274,116 +273,7 @@
       </div>
     </div>
   </div>
-<script>
-	// 탭 ID 배열
-	const tabs = ['board', 'stock', 'game'];
-
-	// 탭을 활성화하고 스타일을 변경하는 함수
-	function activateTab(tabId) {
-		tabs.forEach(t => {
-			const content = document.getElementById(`tab-${t}`);
-			const btn = document.getElementById(`tab-${t}-btn`);
-
-			// 모든 탭 콘텐츠를 숨기고 버튼 스타일 초기화
-			content.classList.add('hidden');
-			btn.classList.remove('bg-white', 'text-main-bg', 'border-b-4');
-			btn.classList.add('bg-gray-700', 'text-white');
-		});
-
-		// 선택된 탭 콘텐츠를 보여주고 버튼에 활성 스타일 적용
-		const activeContent = document.getElementById(`tab-${tabId}`);
-		const activeBtn = document.getElementById(`tab-${tabId}-btn`);
-
-		activeContent.classList.remove('hidden');
-		activeBtn.classList.remove('bg-gray-700', 'text-white');
-		activeBtn.classList.add('bg-white', 'text-main-bg', 'border-b-4');
-	}
-
-	// 1. 페이지가 로드될 때 실행되는 로직
-	window.addEventListener('DOMContentLoaded', () => {
-		// localStorage에서 마지막으로 선택한 탭 ID를 가져옴
-		const savedTab = localStorage.getItem('selectedTab');
-
-		// 저장된 탭이 있고, 유효한 탭 ID인 경우 해당 탭을 활성화
-		if (savedTab && tabs.includes(savedTab)) {
-			activateTab(savedTab);
-		} else {
-			// 저장된 탭이 없으면 기본값으로 '게시판' 탭을 활성화
-			activateTab('board');
-		}
-	});
-
-	// 2. 각 탭 버튼에 클릭 이벤트 추가
-	tabs.forEach(tabId => {
-		document.getElementById(`tab-${tabId}-btn`).addEventListener('click', () => {
-			// 탭을 시각적으로 활성화
-			activateTab(tabId);
-			// 클릭한 탭의 ID를 localStorage에 저장
-			localStorage.setItem('selectedTab', tabId);
-		});
-	});
-</script>
-
-<!-- 실시간 주식 가격 업데이트 스크립트 -->
-<script>
-	// 3초마다 updateStockPrices 함수를 실행합니다.
-	setInterval(updateStockPrices, 3000);
-
-	async function updateStockPrices() {
-		// 주식 탭이 활성화 상태일 때만 업데이트를 실행하여 리소스를 절약합니다.
-		const stockTab = document.getElementById('tab-stock');
-		if (stockTab.classList.contains('hidden')) {
-			return;
-		}
-
-		try {
-			// 1. 서버 API에 최신 주식 데이터를 요청합니다.
-			const response = await fetch('/api/stocks');
-			if (!response.ok) return;
-			const latestStockList = await response.json();
-
-			// 2. 받은 데이터로 각 주식 카드의 내용을 업데이트합니다.
-			latestStockList.forEach(stock => {
-				const priceElement = document.querySelector(`#stock-card-${stock.stockId} .stock-price`);
-				const changeElement = document.querySelector(`#stock-card-${stock.stockId} .stock-change`);
-				const quantityElement = document.querySelector(`#stock-card-${stock.stockId} .user-quantity`);
-
-				if (priceElement && changeElement) {
-					// 가격 업데이트
-					priceElement.textContent = stock.price.toLocaleString('ko-KR') + '원';
-
-					// 변동성 텍스트 및 색상 업데이트
-					const amount = stock.priceChangeAmount;
-					const rate = stock.priceChangeRate.toFixed(2);
-					const arrow = amount >= 0 ? '▲' : '▼';
-
-					changeElement.innerHTML = `
-                        <span>${arrow}</span>
-                        <span>${amount.toLocaleString('ko-KR')}</span>
-                        <span class="block">(${rate}%)</span>
-                    `;
-
-					// CSS 클래스 변경으로 색상 업데이트
-					changeElement.className = 'ml-4 w-28 text-sm stock-change'; // 클래스 초기화
-					if (amount > 0) {
-						changeElement.classList.add('text-red-500');
-					} else if (amount < 0) {
-						changeElement.classList.add('text-blue-500');
-					} else {
-						changeElement.classList.add('text-gray-400');
-					}
-				}
-
-				// 보유수량 업데이트 (로그인 했을 경우에만 요소가 존재)
-				if(quantityElement) {
-					quantityElement.textContent = stock.userQuantity;
-				}
-			});
-		} catch (error) {
-			console.error('주식 정보를 업데이트하는 중 오류 발생:', error);
-		}
-	}
-</script>
+</div>
 
 <!-- 거래 결과 알림 스크립트 -->
 <script th:inline="javascript">
@@ -399,159 +289,6 @@
 	}
 	/*]]>*/
 </script>
-
-<script>
-	document.addEventListener('DOMContentLoaded', function() {
-	  // 최초 메뉴 이벤트 연결
-	  setGameMenuEvents();
-	});
-	
-	// 게임 메뉴 버튼 이벤트 연결 함수
-	function setGameMenuEvents() {
-	  const evenOddBtn = document.getElementById('btn-even-odd');
-	  const updownBtn = document.getElementById('btn-updown');
-	  if (evenOddBtn) evenOddBtn.onclick = renderEvenOddGame;
-	  if (updownBtn) updownBtn.onclick = renderUpDownGame;
-	}
-	
-	// 홀짝 게임 UI 및 로직
-	function renderEvenOddGame() {
-	  document.getElementById('game-content').innerHTML = `
-	    <button id="btn-back" class="mb-2 text-blue-400 underline text-xs">← 뒤로</button>
-	    <div class="mb-2 text-base font-semibold">홀짝게임</div>
-	    <div class="mb-2 text-sm">도전 포인트: <span id="eo-point">10</span></div>
-	    <input type="number" id="eo-input" class="border p-1 rounded w-20 text-sm" placeholder="숫자">
-	    <div class="flex gap-1 mt-2">
-	      <button id="even-btn" class="bg-blue-500 text-white px-2 py-1 rounded text-xs">홀</button>
-	      <button id="odd-btn" class="bg-blue-500 text-white px-2 py-1 rounded text-xs">짝</button>
-	    </div>
-	    <div id="eo-result" class="mt-2 text-sm"></div>
-	    <div id="eo-action" class="mt-2"></div>
-	  `;
-	  let streak = 0;
-	  let point = 10;
-	  let gameActive = true;
-	
-	  document.getElementById('btn-back').onclick = renderGameMenu;
-	
-	  function play(choice) {
-	    if (!gameActive) return;
-	    const num = parseInt(document.getElementById('eo-input').value, 10);
-	    if (isNaN(num)) {
-	      document.getElementById('eo-result').innerText = '숫자를 입력하세요.';
-	      return;
-	    }
-	    const isEven = num % 2 === 0;
-	    const win = (choice === '홀' && !isEven) || (choice === '짝' && isEven);
-	    if (win) {
-	      streak += 1;
-	      document.getElementById('eo-result').innerText = `정답! 연승: ${streak}, 포인트: ${point}`;
-	      document.getElementById('eo-action').innerHTML = `
-	        <button id="eo-stop" class="bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs">멈추기</button>
-	        <button id="eo-double" class="bg-yellow-400 text-white px-2 py-1 rounded text-xs ml-1">2배 도전</button>
-	      `;
-	      gameActive = false;
-	      document.getElementById('eo-stop').onclick = function() {
-	        updateGamePoint(point);
-	      };
-	      document.getElementById('eo-double').onclick = function() {
-	        point *= 2;
-	        document.getElementById('eo-point').innerText = point;
-	        document.getElementById('eo-result').innerText = '';
-	        document.getElementById('eo-action').innerHTML = '';
-	        gameActive = true;
-	      };
-	    } else {
-	      document.getElementById('eo-result').innerText = '실패! 포인트 획득 실패';
-	      document.getElementById('eo-action').innerHTML = '';
-	      streak = 0;
-	      point = 10;
-	    }
-	  }
-	
-	  document.getElementById('even-btn').onclick = () => play('홀');
-	  document.getElementById('odd-btn').onclick = () => play('짝');
-	}
-	
-	// 업다운 게임 UI 및 로직
-	function renderUpDownGame() {
-	  document.getElementById('game-content').innerHTML = `
-	    <button id="btn-back" class="mb-2 text-green-400 underline text-xs">← 뒤로</button>
-	    <div class="mb-2 text-base font-semibold">UPDOWN 게임</div>
-	    <div class="mb-2 text-sm">남은 기회: <span id="ud-chance">12</span> / 포인트: <span id="ud-point">4096</span></div>
-	    <input type="number" id="ud-input" class="border p-1 rounded w-20 text-sm" placeholder="1~100">
-	    <button id="ud-guess" class="bg-green-500 text-white px-2 py-1 rounded text-xs ml-1">확인</button>
-	    <div id="ud-result" class="mt-2 text-sm"></div>
-	  `;
-	  let answer = Math.floor(Math.random() * 100) + 1;
-	  let chance = 12;
-	  let point = 4096;
-	  let finished = false;
-	
-	  document.getElementById('btn-back').onclick = renderGameMenu;
-	
-	  document.getElementById('ud-guess').onclick = function() {
-	    if (finished) return;
-	    const guess = parseInt(document.getElementById('ud-input').value, 10);
-	    if (isNaN(guess) || guess < 1 || guess > 100) {
-	      document.getElementById('ud-result').innerText = '1~100 사이의 숫자 입력!';
-	      return;
-	    }
-	    if (guess === answer) {
-	      document.getElementById('ud-result').innerText = `정답! ${point}포인트 획득!`;
-	      updateGamePoint(point);
-	      finished = true;
-	    } else {
-	      chance -= 1;
-	      point = Math.max(1, Math.floor(point / 2));
-	      document.getElementById('ud-chance').innerText = chance;
-	      document.getElementById('ud-point').innerText = point;
-	      document.getElementById('ud-result').innerText = guess < answer ? 'UP!' : 'DOWN!';
-	      if (chance === 0) {
-	        document.getElementById('ud-result').innerText = `실패! 1포인트 획득`;
-	        updateGamePoint(1);
-	        finished = true;
-	      }
-	    }
-	  };
-	}
-	
-	// 게임 메뉴로 돌아가기
-	function renderGameMenu() {
-	  document.getElementById('game-content').innerHTML = `
-	    <div class="text-gray-600 text-base mb-4">게임을 선택하세요.</div>
-	    <div class="flex gap-2">
-	      <button id="btn-even-odd" class="px-3 py-2 bg-blue-500 text-white rounded text-sm">홀짝</button>
-	      <button id="btn-updown" class="px-3 py-2 bg-green-500 text-white rounded text-sm">UPDOWN</button>
-	    </div>
-	    <div class="mt-4 text-sm text-gray-700">
-	      내 포인트: <span id="current-point">${document.getElementById('current-point') ? document.getElementById('current-point').innerText : 0}</span>
-	    </div>
-	  `;
-	  setGameMenuEvents();
-	}
-	
-	// Ajax로 포인트 업데이트하고, 성공 시 메인으로 리다이렉트
-	function updateGamePoint(delta) {
-	  fetch('/game/point', {
-	    method: 'POST',
-	    headers: {'Content-Type': 'application/json'},
-	    body: JSON.stringify({delta: delta})
-	  })
-	  .then(res => {
-	    if (!res.ok) throw new Error('서버 오류');
-	    return res.json();
-	  })
-	  .then(data => {
-	    // 안전하게 요소 체크 후 갱신
-	    const pointElem = document.getElementById('current-point');
-	    if (pointElem) pointElem.innerText = data.point;
-	    window.location.href = '/';
-	  })
-	  .catch(err => { alert(err.message); });
-	}
-</script>
-
 
 <!-- 회원가입 성공 알림 스크립트 (기존과 동일) -->
 <script th:if="${signupSuccess}" th:inline="javascript">
