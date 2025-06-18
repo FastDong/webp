@@ -12,4 +12,6 @@ import java.util.Optional;
 public interface StocksRepository extends CrudRepository<Stocks, Long>{
     List<Stocks> findByMemberIsNull();
     Optional<Stocks> findByMemberAndStockName(Member member, String stockName);
+
+    List<Stocks> findByMember(Member member);
 }

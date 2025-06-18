@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <title>메인 페이지</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<meta http-equiv="refresh" content="3">
+
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -89,20 +89,19 @@
 			<h2 class="text-2xl font-bold mb-6 text-gray-800">주식</h2>
 			<div class="space-y-4">
 				<!-- 주식 아이템 카드 (Thymeleaf 반복문) -->
-				<div th:each="stock : ${stockList}" class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+				<div th:each="stock : ${stockList}" class="bg-gray-800 rounded-lg shadow-lg overflow-hidden" th:id="'stock-card-' + ${stock.stockId}">
 					<!-- 상단: 종목 정보 및 변동성 -->
 					<div class="flex items-center justify-between text-white p-4">
 						<span class="text-lg font-semibold" th:text="${stock.stockName}">종목명</span>
 						<div class="flex items-center text-right">
-							<span class="text-lg font-semibold" th:text="${#numbers.formatDecimal(stock.price, 0, 'COMMA', 0, 'POINT')} + '원'">가격</span>
-							<!-- ✅ 변동성 표시 부분 -->
-							<div class="ml-4 w-28 text-sm"
+							<!-- ✅ class="stock-price" 추가 -->
+							<span class="text-lg font-semibold stock-price" th:text="${#numbers.formatDecimal(stock.price, 0, 'COMMA', 0, 'POINT')} + '원'">가격</span>
+							<!-- ✅ class="stock-change" 추가 -->
+							<div class="ml-4 w-28 text-sm stock-change"
 								 th:classappend="${stock.priceChangeAmount > 0 ? 'text-red-500' : (stock.priceChangeAmount < 0 ? 'text-blue-500' : 'text-gray-400')}">
 								<span th:text="${stock.priceChangeAmount >= 0 ? '▲' : '▼'}"></span>
 								<span th:text="${#numbers.formatDecimal(stock.priceChangeAmount, 0, 'COMMA', 0, 'POINT')}"></span>
-								<!-- 첫 번째 파라미터: 대상 숫자, 두 번째: 정수부 최소 자릿수, 세 번째: 소수부 자릿수 -->
 								<span class="block" th:text="'(' + ${#numbers.formatDecimal(stock.priceChangeRate, 1, 2)} + '%)'"></span>
-
 							</div>
 						</div>
 					</div>
@@ -168,17 +167,46 @@
 		    </div>
 		    <div class="flex justify-between mb-2">
 		      <span class="text-gray-600 text-base">보유 포인트</span>
-		      <span class="text-green-600 text-xl font-bold" th:text="${member?.point ?: 0}">10000</span>
+				<span class="text-green-600 text-xl font-bold"
+					  th:text="${@formatUtils.formatKoreanWon(member.point)}">10,000원</span>
 		    </div>
 		    <div class="flex justify-between text-gray-500 text-sm mt-4">
 		      <span>작성한 게시글 수: <span class="font-semibold" th:text="${member?.postCount ?: 0}">0</span></span>
 		      <span>작성한 댓글 수: <span class="font-semibold" th:text="${member?.replyCount ?: 0}">0</span></span>
 		    </div>
+
+			  <!-- ✅ 여기에 보유 주식 현황 섹션을 추가합니다. -->
+			  <div class="mt-4 pt-4 border-t border-gray-300">
+				  <h3 class="text-gray-700 font-semibold mb-2">보유 주식 현황</h3>
+
+				  <!-- 보유 주식이 없을 경우 -->
+				  <div th:if="${#lists.isEmpty(ownedStockList)}" class="text-gray-500 text-sm">
+					  보유한 주식이 없습니다.
+				  </div>
+
+				  <!-- 보유 주식이 있을 경우 목록 표시 -->
+				  <ul th:unless="${#lists.isEmpty(ownedStockList)}" class="space-y-1 text-sm mb-3">
+					  <li th:each="stock : ${ownedStockList}" class="flex justify-between items-center">
+						  <span class="text-gray-800" th:text="${stock.stockName}">삼성전자</span>
+						  <span class="text-gray-600" th:text="${stock.count} + '주'">10주</span>
+					  </li>
+				  </ul>
+
+				  <!-- 총 주식 평가액 표시 -->
+				  <div class="flex justify-between items-center border-t border-gray-200 pt-2">
+					  <span class="text-gray-800 font-bold">총 주식 평가액</span>
+					  <span class="text-blue-700 text-lg font-bold"
+							th:text="${@formatUtils.formatKoreanWon(totalStockValue)}">1,710,000원</span>
+				  </div>
+			  </div>
 		  </div>
+		</div>
+
 		  <form th:action="@{/logout}" method="post" class="mt-8">
 		    <button type="submit" class="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors">로그아웃</button>
 		  </form>
 		</div>
+
       <!-- 비로그인 상태: 로그인폼 -->
       <div th:if="${member == null}" class="h-full flex flex-col justify-center">
         <form th:action="@{/login}" method="post" class="space-y-4">
@@ -261,6 +289,82 @@
 			localStorage.setItem('selectedTab', tabId);
 		});
 	});
+</script>
+
+<!-- 실시간 주식 가격 업데이트 스크립트 -->
+<script>
+	// 3초마다 updateStockPrices 함수를 실행합니다.
+	setInterval(updateStockPrices, 3000);
+
+	async function updateStockPrices() {
+		// 주식 탭이 활성화 상태일 때만 업데이트를 실행하여 리소스를 절약합니다.
+		const stockTab = document.getElementById('tab-stock');
+		if (stockTab.classList.contains('hidden')) {
+			return;
+		}
+
+		try {
+			// 1. 서버 API에 최신 주식 데이터를 요청합니다.
+			const response = await fetch('/api/stocks');
+			if (!response.ok) return;
+			const latestStockList = await response.json();
+
+			// 2. 받은 데이터로 각 주식 카드의 내용을 업데이트합니다.
+			latestStockList.forEach(stock => {
+				const priceElement = document.querySelector(`#stock-card-${stock.stockId} .stock-price`);
+				const changeElement = document.querySelector(`#stock-card-${stock.stockId} .stock-change`);
+				const quantityElement = document.querySelector(`#stock-card-${stock.stockId} .user-quantity`);
+
+				if (priceElement && changeElement) {
+					// 가격 업데이트
+					priceElement.textContent = stock.price.toLocaleString('ko-KR') + '원';
+
+					// 변동성 텍스트 및 색상 업데이트
+					const amount = stock.priceChangeAmount;
+					const rate = stock.priceChangeRate.toFixed(2);
+					const arrow = amount >= 0 ? '▲' : '▼';
+
+					changeElement.innerHTML = `
+                        <span>${arrow}</span>
+                        <span>${amount.toLocaleString('ko-KR')}</span>
+                        <span class="block">(${rate}%)</span>
+                    `;
+
+					// CSS 클래스 변경으로 색상 업데이트
+					changeElement.className = 'ml-4 w-28 text-sm stock-change'; // 클래스 초기화
+					if (amount > 0) {
+						changeElement.classList.add('text-red-500');
+					} else if (amount < 0) {
+						changeElement.classList.add('text-blue-500');
+					} else {
+						changeElement.classList.add('text-gray-400');
+					}
+				}
+
+				// 보유수량 업데이트 (로그인 했을 경우에만 요소가 존재)
+				if(quantityElement) {
+					quantityElement.textContent = stock.userQuantity;
+				}
+			});
+		} catch (error) {
+			console.error('주식 정보를 업데이트하는 중 오류 발생:', error);
+		}
+	}
+</script>
+
+<!-- 거래 결과 알림 스크립트 -->
+<script th:inline="javascript">
+	/*<![CDATA[*/
+	const tradeSuccess = /*[[${tradeSuccess}]]*/ null;
+	const tradeError = /*[[${tradeError}]]*/ null;
+
+	if (tradeSuccess) {
+		alert(tradeSuccess);
+	}
+	if (tradeError) {
+		alert(tradeError);
+	}
+	/*]]>*/
 </script>
 
 <!-- 회원가입 성공 알림 스크립트 (기존과 동일) -->

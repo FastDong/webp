@@ -1,5 +1,6 @@
 package ce.mnu.wptc.controller;
 
+import ce.mnu.wptc.dto.MainPageData;
 import ce.mnu.wptc.dto.VirtualStockView;
 import ce.mnu.wptc.entity.Member;
 import ce.mnu.wptc.entity.Stocks;
@@ -7,17 +8,21 @@ import ce.mnu.wptc.repository.MemberRepository;
 import ce.mnu.wptc.entity.Post;
 import ce.mnu.wptc.repository.PostRepository;
 import ce.mnu.wptc.repository.StocksRepository;
+import ce.mnu.wptc.service.MainPageService;
 import ce.mnu.wptc.service.StockDataService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -28,50 +33,33 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MainController {
 
-    private final PostRepository postRepository;
+    private final MainPageService mainPageService; // ✅ 서비스만 주입받습니다.
     private final MemberRepository memberRepository;
-    private final StocksRepository stocksRepository;
-    private final StockDataService stockDataService; // ✅ 서비스 주입
 
     @GetMapping("/")
     public String mainPage(Model model, HttpSession session,
                            @RequestParam(defaultValue = "0") int page) {
-        Page<Post> postPage = postRepository.findAll(PageRequest.of(page, 3));
-        model.addAttribute("postPage", postPage);
 
-        Member member = (Member) session.getAttribute("loginMember");
-        model.addAttribute("member", member);
+        // 1. 세션에서 로그인한 회원의 ID 가져오기
+        Member sessionMember = (Member) session.getAttribute("loginMember");
+        Long memberId = (sessionMember != null) ? sessionMember.getMemberId() : null;
 
-        // 3. 주식 데이터 로드 (✅ 이 부분 추가!)
-        List<Stocks> virtualStocks = stocksRepository.findByMemberIsNull();
-        List<VirtualStockView> stockList = new ArrayList<>();
+        // 2. 페이징 정보 생성
+        Pageable pageable = PageRequest.of(page, 3, Sort.by(Sort.Direction.DESC, "postId"));
 
-        for (Stocks stock : virtualStocks) {
-            VirtualStockView dto = new VirtualStockView();
-            dto.setStockId(stock.getStockId());
-            dto.setStockName(stock.getStockName());
-            dto.setPrice(stock.getPrice());
+        // 3. 서비스 호출하여 메인 페이지에 필요한 모든 데이터를 한번에 가져오기
+        MainPageData mainPageData = mainPageService.prepareMainPageData(memberId, pageable);
 
-            long userQuantity = 0;
-            if (member != null) {
-                // 회원의 보유 수량 조회 로직 (Optional 사용 권장)
-                Optional<Stocks> userStockOpt = stocksRepository.findByMemberAndStockName(member, stock.getStockName());
-                userQuantity = userStockOpt.map(Stocks::getCount).orElse(0L);
-            }
-            dto.setUserQuantity(userQuantity);
-
-            // ✅ 여기에 변동 데이터 로직을 추가합니다.
-            StockDataService.PriceChangeData changeData = stockDataService.getPriceChange(stock.getStockName());
-            dto.setPriceChangeAmount(changeData.amount());
-            dto.setPriceChangeRate(changeData.rate());
-
-            stockList.add(dto);
-        }
-        model.addAttribute("stockList", stockList);
+        // 4. 모델에 데이터 추가
+        model.addAttribute("postPage", mainPageData.getPostPage());
+        model.addAttribute("member", mainPageData.getMember());
+        model.addAttribute("stockList", mainPageData.getStockList());
+        model.addAttribute("ownedStockList", mainPageData.getOwnedStockList());
+        model.addAttribute("totalStockValue", mainPageData.getTotalStockValue());
 
         return "main";
     }
-    
+
     @PostMapping("/login")
     public String login(@RequestParam String email,
                         @RequestParam String password,
@@ -100,4 +88,16 @@ public class MainController {
         // 로그인 되어 있으면 페이지 반환
         return "protected";
     }
+
+    @GetMapping("/api/stocks")
+    @ResponseBody
+    public List<VirtualStockView> getRealTimeStocks(HttpSession session) {
+        // 1. 세션에서 로그인한 회원의 ID 가져오기
+        Member sessionMember = (Member) session.getAttribute("loginMember");
+        Long memberId = (sessionMember != null) ? sessionMember.getMemberId() : null;
+
+        // 2. 서비스 호출하여 DTO 리스트를 바로 반환
+        return mainPageService.getRealTimeStockViews(memberId);
+    }
+
 }
