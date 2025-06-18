@@ -1,5 +1,8 @@
 package ce.mnu.wptc.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,9 +27,13 @@ public class Reply {
     @JoinColumn(name = "MEMBER_ID")
     private Member member;
 
-    // 부모 댓글 (자기 자신을 참조할 수 있는 구조)
-    private long parentId;
-
+    @ManyToOne
+    @JoinColumn(name = "PARENT_ID")
+    private Reply parent;
+    
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Reply> children = new ArrayList<>();
+    
     private long layer = 0;
 
     private String contents;

@@ -59,63 +59,125 @@
         <!-- 본문 -->
         <div class="border-t border-b py-10 text-gray-700 text-lg min-h-[350px]" th:text="${post.contents}">
             게시글 내용이 여기에 표시됩니다.
-        </div>
-        <!-- 댓글 영역 -->
-        <div class="mt-10">
-           <!-- 댓글 목록 -->
-			<div th:each="reply : ${topLevelReplies}" class="mb-5 text-[80%]">
-			    <div class="flex items-center gap-2 cursor-pointer"
-			         th:onclick="'toggleReplyForm(' + ${reply.replyId} + ')'">
-			        <span th:text="${reply.member.name}">댓글작성자</span>
-			        <span class="text-xs text-gray-400" th:text="${reply.replyTime}">2025-06-17 14:00</span>
-			    </div>
-			    <div class="ml-2 text-gray-800" th:text="${reply.contents}">댓글 내용</div>
-			    <!-- 대댓글 폼 (기본 숨김) -->
-			    <form th:if="${member != null}" th:action="@{/posts/{id}/comment(id=${post.postId})}" method="post"
-			          th:id="'reply-form-' + ${reply.replyId}" style="display:none;" class="flex gap-2 mt-1 ml-8">
-			        <input type="hidden" name="parentId" th:value="${reply.replyId}" />
-			        <input type="text" name="content" class="flex-1 px-2 py-1 border border-gray-300 rounded text-xs" placeholder="답글을 입력하세요" required>
-			        <button type="submit" class="bg-blue-400 text-white px-3 py-1 rounded text-xs">답글</button>
-			    </form>
-			    <!-- 대댓글 출력 -->
-			    <div th:if="${childReplyMap[reply.replyId] != null}">
-			        <div th:each="child : ${childReplyMap[reply.replyId]}" class="ml-8 mt-1">
-			            <div class="flex items-center gap-2 cursor-pointer"
-			                 th:onclick="'toggleReplyForm(' + ${child.replyId} + ')'">
-			                <span th:text="${child.member.name}">대댓글작성자</span>
-			                <span class="text-xs text-gray-400" th:text="${child.replyTime}">2025-06-17 14:00</span>
-			            </div>
-			            <div class="ml-2 text-gray-800" th:text="${child.contents}">대댓글 내용</div>
-			            <form th:if="${member != null}" th:action="@{/posts/{id}/comment(id=${post.postId})}" method="post"
-			                  th:id="'reply-form-' + ${child.replyId}" style="display:none;" class="flex gap-2 mt-1 ml-8">
-			                <input type="hidden" name="parentId" th:value="${child.replyId}" />
-			                <input type="text" name="content" class="flex-1 px-2 py-1 border border-gray-300 rounded text-xs" placeholder="답글을 입력하세요" required>
-			                <button type="submit" class="bg-blue-400 text-white px-3 py-1 rounded text-xs">답글</button>
-			            </form>
-			        </div>
-			    </div>
-			</div>
+        </div>	
+		<!-- 댓글 목록 -->
+		<div th:each="reply : ${topLevelReplies}" class="mb-5 text-[80%]">
+		    <div class="flex items-center gap-2">
+		        <span th:text="${reply.member.name}">댓글작성자</span>
+		        <span class="text-xs text-gray-400" th:text="${reply.replyTime}">2025-06-17 14:00</span>
+		        <button type="button"
+			        class="ml-2 text-green-500 hover:underline text-xs reply-toggle-btn"
+			        th:attr="data-reply-id=${reply.replyId}">답글</button>
+		        <!-- 본인 댓글만 수정/삭제 버튼 노출 -->
+		        <span th:if="${member != null and reply.member.memberId == member.memberId}">
+		            <button type="button" class="ml-2 text-blue-500 hover:underline text-xs edit-btn"
+		                    th:attr="data-reply-id=${reply.replyId}">수정</button>
+		            <form th:action="@{/posts/{postId}/comment/{replyId}/delete(postId=${post.postId}, replyId=${reply.replyId})}"
+		                  method="post" style="display:inline;">
+		                <button type="submit" onclick="return confirm('정말 삭제하시겠습니까?');"
+		                        class="ml-1 text-red-500 hover:underline text-xs bg-transparent border-0 p-0">삭제</button>
+		            </form>
+		        </span>
+		    </div>
+		    <!-- 댓글 내용 & 인라인 수정 input -->
+		    <div class="ml-2 text-gray-800">
+		        <span th:id="'reply-content-' + ${reply.replyId}" th:text="${reply.contents}">댓글 내용</span>
+		        <form th:action="@{/posts/{id}/comment/{replyId}/edit(id=${post.postId}, replyId=${reply.replyId})}"
+		              method="post" th:id="'edit-form-' + ${reply.replyId}" style="display:none;" class="inline">
+		            <input type="text" name="content" th:value="${reply.contents}" class="border rounded px-2 py-1 text-xs" required>
+		            <button type="submit" class="bg-blue-400 text-white px-2 py-1 rounded text-xs">완료</button>
+		            <button type="button" class="bg-gray-300 px-2 py-1 rounded text-xs cancel-edit-btn" th:attr="data-reply-id=${reply.replyId}">취소</button>
+		        </form>
+		    </div>
+		    <!-- 대댓글 폼 (기본 숨김) -->
+		    <form th:if="${member != null}" th:action="@{/posts/{id}/comment(id=${post.postId})}" method="post"
+		          th:id="'reply-form-' + ${reply.replyId}" style="display:none;" class="flex gap-2 mt-1 ml-8">
+		        <input type="hidden" name="parent" th:value="${reply.replyId}" />
+		        <input type="text" name="content" class="flex-1 px-2 py-1 border border-gray-300 rounded text-xs" placeholder="답글을 입력하세요" required>
+		        <button type="submit" class="bg-blue-400 text-white px-3 py-1 rounded text-xs">답글</button>
+		    </form>
+		    <!-- 대댓글 출력 -->
+		    <div th:if="${childReplyMap[reply.replyId] != null}">
+		        <div th:each="child : ${childReplyMap[reply.replyId]}" class="ml-8 mt-1">
+		            <div class="flex items-center gap-2">
+		                <span th:text="${child.member.name}">대댓글작성자</span>
+		                <span class="text-xs text-gray-400" th:text="${child.replyTime}">2025-06-17 14:00</span>
+		                <button type="button"
+					        class="ml-2 text-green-500 hover:underline text-xs reply-toggle-btn"
+					        th:attr="data-reply-id=${child.replyId}">답글</button>
+		                <!-- 본인 대댓글만 수정/삭제 버튼 노출 -->
+		                <span th:if="${member != null and child.member.memberId == member.memberId}">
+		                    <button type="button" class="ml-2 text-blue-500 hover:underline text-xs edit-btn"
+		                            th:attr="data-reply-id=${child.replyId}">수정</button>
+		                    <form th:action="@{/posts/{postId}/comment/{replyId}/delete(postId=${post.postId}, replyId=${child.replyId})}"
+		                          method="post" style="display:inline;">
+		                        <button type="submit" onclick="return confirm('정말 삭제하시겠습니까?');"
+		                                class="ml-1 text-red-500 hover:underline text-xs bg-transparent border-0 p-0">삭제</button>
+		                    </form>
+		                </span>
+		            </div>
+		            <div class="ml-2 text-gray-800">
+		                <span th:id="'reply-content-' + ${child.replyId}" th:text="${child.contents}">대댓글 내용</span>
+		                <form th:action="@{/posts/{id}/comment/{replyId}/edit(id=${post.postId}, replyId=${child.replyId})}"
+		                      method="post" th:id="'edit-form-' + ${child.replyId}" style="display:none;" class="inline">
+		                    <input type="text" name="content" th:value="${child.contents}" class="border rounded px-2 py-1 text-xs" required>
+		                    <button type="submit" class="bg-blue-400 text-white px-2 py-1 rounded text-xs">완료</button>
+		                    <button type="button" class="bg-gray-300 px-2 py-1 rounded text-xs cancel-edit-btn" th:attr="data-reply-id=${child.replyId}">취소</button>
+		                </form>
+		            </div>
+		            <form th:if="${member != null}" th:action="@{/posts/{id}/comment(id=${post.postId})}" method="post"
+		                  th:id="'reply-form-' + ${child.replyId}" style="display:none;" class="flex gap-2 mt-1 ml-8">
+		                <input type="hidden" name="parent" th:value="${child.replyId}" />
+		                <input type="text" name="content" class="flex-1 px-2 py-1 border border-gray-300 rounded text-xs" placeholder="답글을 입력하세요" required>
+		                <button type="submit" class="bg-blue-400 text-white px-3 py-1 rounded text-xs">답글</button>
+		            </form>
+		        </div>
+		    </div>
+		</div>
+		<form th:if="${member != null}" th:action="@{/posts/{id}/comment(id=${post.postId})}" method="post" class="mb-8 flex gap-2">
+		    <input type="hidden" name="parent" value="" />
+		    <input type="text" name="content" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg" placeholder="댓글을 입력하세요" required>
+		    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">댓글 등록</button>
+		</form>
+		
+		<div th:if="${member == null}" class="mt-6 text-center text-gray-400 text-sm">
+		    댓글을 작성하려면 <a th:href="@{/}" class="text-blue-600 hover:underline">로그인</a>이 필요합니다.
+		</div>
+		
+		<script>
+		document.addEventListener('DOMContentLoaded', function () {
+		    // 인라인 수정 폼 토글
+		    document.querySelectorAll('.edit-btn').forEach(function (btn) {
+		        btn.addEventListener('click', function () {
+		            var replyId = btn.getAttribute('data-reply-id');
+		            document.getElementById('reply-content-' + replyId).style.display = 'none';
+		            document.getElementById('edit-form-' + replyId).style.display = 'inline';
+		        });
+		    });
+		    document.querySelectorAll('.cancel-edit-btn').forEach(function (btn) {
+		        btn.addEventListener('click', function () {
+		            var replyId = btn.getAttribute('data-reply-id');
+		            document.getElementById('reply-content-' + replyId).style.display = 'inline';
+		            document.getElementById('edit-form-' + replyId).style.display = 'none';
+		        });
+		    });
+		    document.querySelectorAll('.reply-toggle-btn').forEach(function (btn) {
+		        btn.addEventListener('click', function () {
+		            var replyId = btn.getAttribute('data-reply-id');
+		            var form = document.getElementById('reply-form-' + replyId);
+		            if (form) {
+		                form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'flex' : 'none';
+		            }
+		        });
+		    });
+		});
+		</script>
 
-            <div th:if="${member == null}" class="mt-6 text-center text-gray-400 text-sm">
-                댓글을 작성하려면 <a th:href="@{/}" class="text-blue-600 hover:underline">로그인</a>이 필요합니다.
-            </div>
-        </div>
         <!-- 뒤로가기 버튼 -->
         <div class="mt-10 text-center">
             <a th:href="@{/}" class="inline-block bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors">목록으로</a>
         </div>
     </div>
 </div>
-
-<script>
-function toggleReplyForm(replyId) {
-    var form = document.getElementById('reply-form-' + replyId);
-    if (form) {
-        form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'flex' : 'none';
-    }
-}
-</script>
-
-
 </body>
 </html>
