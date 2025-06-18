@@ -84,11 +84,51 @@
 		       class="px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300">다음</a>
 		  </div>
 		</div>
-      <!-- 주식 -->
-      <div id="tab-stock" class="tab-content hidden">
-        <h2 class="text-2xl font-bold mb-6 text-gray-800">주식</h2>
-        <div class="text-gray-600 text-lg">여기에 주식 관련 내용을 넣으세요.</div>
-      </div>
+		<!-- 주식 (새로운 디자인 적용) -->
+		<div id="tab-stock" class="tab-content hidden">
+			<h2 class="text-2xl font-bold mb-6 text-gray-800">주식</h2>
+			<div class="space-y-4">
+
+				<!-- 주식 아이템 카드 (Thymeleaf 반복문) -->
+				<div th:each="stock : ${stockList}" class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+					<!-- 상단: 종목 정보 -->
+					<div class="flex items-center justify-between text-white p-4">
+						<span class="text-lg font-semibold" th:text="${stock.stockName}">종목명</span>
+						<span class="text-lg font-semibold" th:text="${#numbers.formatDecimal(stock.price, 0, 'COMMA', 0, 'POINT')} + '원'">가격</span>
+					</div>
+
+					<!-- 하단: 매수/매도 및 보유수량 (로그인 시) -->
+					<div th:if="${member != null}" class="bg-gray-700/50 p-3 flex items-center justify-between space-x-4">
+						<!-- 보유수량 -->
+						<div class="text-white text-sm">
+							내 보유수량: <strong class="text-lg" th:text="${stock.userQuantity}">0</strong>
+						</div>
+						<!-- 매수/매도 폼 -->
+						<div class="flex items-center space-x-2">
+							<!-- 매수 Form -->
+							<form th:action="@{/stocks/buy}" method="post" class="flex items-center space-x-2"
+								  th:onsubmit="${member == null} ? 'event.preventDefault(); alert(\'로그인 하세요\');' : ''">
+								<input type="hidden" name="stockId" th:value="${stock.stockId}" />
+								<input type="number" name="quantity" value="1" min="1" class="w-20 bg-gray-900 border border-gray-600 rounded px-2 py-1 text-center text-white"/>
+								<button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded font-semibold transition">매수</button>
+							</form>
+							<!-- 매도 Form -->
+							<form th:action="@{/stocks/sell}" method="post" class="flex items-center space-x-2"
+								  th:onsubmit="${member == null} ? 'event.preventDefault(); alert(\'로그인 하세요\');' : ''">
+								<input type="hidden" name="stockId" th:value="${stock.stockId}" />
+								<input type="number" name="quantity" value="1" min="1" th:max="${stock.userQuantity > 0 ? stock.userQuantity : 1}" class="w-20 bg-gray-900 border border-gray-600 rounded px-2 py-1 text-center text-white"/>
+								<button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded font-semibold transition" th:disabled="${stock.userQuantity == 0}">매도</button>
+							</form>
+						</div>
+					</div>
+
+					<!-- 하단: 로그인 안내 메시지 (비로그인 시) -->
+					<div th:if="${member == null}" class="bg-gray-700/50 p-4 text-center">
+						<span class="text-gray-400">매수/매도 기능은 로그인 후 이용 가능합니다.</span>
+					</div>
+				</div>
+			</div>
+		</div>
       <!-- 게임 -->
       <div id="tab-game" class="tab-content hidden">
         <h2 class="text-2xl font-bold mb-6 text-gray-800">게임</h2>
