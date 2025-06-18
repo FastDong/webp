@@ -18,7 +18,7 @@ public class StockService {
     private final StocksRepository stocksRepository;
 
     @Transactional
-    public void buyStock(Long memberId, Long stockId, long quantity) {
+    public Member buyStock(Long memberId, Long stockId, long quantity) {
         // 1. 회원과 가상 주식 정보 조회
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
@@ -38,19 +38,30 @@ public class StockService {
         member.setPoint(member.getPoint() - totalPrice);
         memberRepository.save(member);
 
-        // 4. 회원의 보유 주식 정보 업데이트
+        // 4. 회원의 보유 주식 정보 업데이트 (✅ 이 부분이 수정됩니다)
         Optional<Stocks> userStockOpt = stocksRepository.findByMemberAndStockName(member, virtualStock.getStockName());
 
         if (userStockOpt.isPresent()) {
-            // 이미 보유한 주식이면 수량만 추가
+            // 이미 보유한 주식: 평균 단가 재계산
             Stocks userStock = userStockOpt.get();
-            userStock.setCount(userStock.getCount() + quantity);
+            long oldTotalValue = userStock.getPrice() * userStock.getCount();
+            long newTotalValue = oldTotalValue + totalPrice;
+            long newTotalCount = userStock.getCount() + quantity;
+
+            long newAveragePrice = newTotalValue / newTotalCount; // 새로운 평균 단가
+
+            userStock.setCount(newTotalCount);
+            userStock.setPrice(newAveragePrice); // 평균 단가 업데이트
             stocksRepository.save(userStock);
+
         } else {
-            // 처음 매수하는 주식이면 새로 생성
+            // 처음 매수하는 주식: 현재가를 매수 단가로 하여 새로 생성
             Stocks newUserStock = new Stocks(virtualStock.getStockName(), quantity, price, member);
             stocksRepository.save(newUserStock);
         }
+
+        // 5. 수정된 Member 객체 반환
+        return memberRepository.save(member);
     }
 
     @Transactional

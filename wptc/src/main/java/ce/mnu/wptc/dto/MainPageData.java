@@ -14,6 +14,11 @@ public class MainPageData {
     private Page<Post> postPage;
     private Member member;
     private List<VirtualStockView> stockList;
-    private List<Stocks> ownedStockList;
+    private List<OwnedStockView> ownedStockViewList;
     private long totalStockValue;
+
+    // ✅ 아래 3개 필드를 새로 추가합니다.
+    private final long totalPurchasePrice; // 총 매수 금액
+    private final long totalProfitLoss;    // 총 평가 손익
+    private final double totalProfitLossRate;  // 총 평가 수익률
 }

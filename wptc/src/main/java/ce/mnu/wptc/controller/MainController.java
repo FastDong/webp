@@ -54,8 +54,11 @@ public class MainController {
         model.addAttribute("postPage", mainPageData.getPostPage());
         model.addAttribute("member", mainPageData.getMember());
         model.addAttribute("stockList", mainPageData.getStockList());
-        model.addAttribute("ownedStockList", mainPageData.getOwnedStockList());
+        model.addAttribute("ownedStockViewList", mainPageData.getOwnedStockViewList());
         model.addAttribute("totalStockValue", mainPageData.getTotalStockValue());
+        // ✅ 아래 2개 속성을 모델에 새로 추가합니다.
+        model.addAttribute("totalProfitLoss", mainPageData.getTotalProfitLoss());
+        model.addAttribute("totalProfitLossRate", mainPageData.getTotalProfitLossRate());
 
         return "main";
     }

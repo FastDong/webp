@@ -184,28 +184,56 @@
 		      <span>작성한 댓글 수: <span class="font-semibold" th:text="${member?.replyCount ?: 0}">0</span></span>
 		    </div>
 
-			  <!-- ✅ 여기에 보유 주식 현황 섹션을 추가합니다. -->
+			  <!-- ✅ 보유 주식 현황 섹션을 아래 코드로 교체합니다. -->
 			  <div class="mt-4 pt-4 border-t border-gray-300">
 				  <h3 class="text-gray-700 font-semibold mb-2">보유 주식 현황</h3>
 
-				  <!-- 보유 주식이 없을 경우 -->
-				  <div th:if="${#lists.isEmpty(ownedStockList)}" class="text-gray-500 text-sm">
+				  <div th:if="${#lists.isEmpty(ownedStockViewList)}" class="text-gray-500 text-sm">
 					  보유한 주식이 없습니다.
 				  </div>
 
-				  <!-- 보유 주식이 있을 경우 목록 표시 -->
-				  <ul th:unless="${#lists.isEmpty(ownedStockList)}" class="space-y-1 text-sm mb-3">
-					  <li th:each="stock : ${ownedStockList}" class="flex justify-between items-center">
-						  <span class="text-gray-800" th:text="${stock.stockName}">삼성전자</span>
-						  <span class="text-gray-600" th:text="${stock.count} + '주'">10주</span>
-					  </li>
-				  </ul>
+				  <div th:unless="${#lists.isEmpty(ownedStockViewList)}" class="space-y-2 text-sm mb-3">
+					  <!-- 보유 주식 목록 반복 -->
+					  <div th:each="stock : ${ownedStockViewList}" class="p-2 rounded bg-gray-50">
+						  <div class="flex justify-between items-center font-semibold">
+							  <span class="text-gray-800" th:text="${stock.stockName}">삼성전자</span>
+							  <!-- ✅ 평단가 표시 (새로 추가) -->
+							  <span class="text-xs text-black-500 font-semibold"
+									th:text="${@formatUtils.formatKoreanWon(stock.averagePurchasePrice)}">@ 83,000원</span>
 
-				  <!-- 총 주식 평가액 표시 -->
-				  <div class="flex justify-between items-center border-t border-gray-200 pt-2">
-					  <span class="text-gray-800 font-bold">총 주식 평가액</span>
-					  <span class="text-blue-700 text-lg font-bold"
-							th:text="${@formatUtils.formatKoreanWon(totalStockValue)}">1,710,000원</span>
+							  <span class="text-gray-600" th:text="${stock.quantity} + '주'">10주</span>
+						  </div>
+						  <div class="flex justify-between items-center mt-1 text-xs"
+							   th:classappend="${stock.profitLossAmount > 0 ? 'text-red-600' : (stock.profitLossAmount < 0 ? 'text-blue-600' : 'text-gray-500')}">
+							  <!-- ✅ 두 번째 줄: 평가 금액 (새로 추가된 부분) -->
+							  <div class="flex justify-end items-center mt-1 text-gray-800 font-semibold">
+								  <span th:text="${@formatUtils.formatKoreanWon(stock.totalCurrentValue)}">850,000원</span>
+							  </div>
+							  <!-- 평가 손익 (부호 처리 수정) -->
+							  <span th:text="${(stock.profitLossAmount > 0 ? '+' : (stock.profitLossAmount < 0 ? '-' : '')) + @formatUtils.formatKoreanWon(T(java.lang.Math).abs(stock.profitLossAmount))}"></span>
+							  <!-- 수익률 -->
+							  <span th:text="'(' + ${#numbers.formatDecimal(stock.profitLossRate, 1, 2)} + '%)'"></span>
+						  </div>
+					  </div>
+				  </div>
+
+				  <!-- 총 자산 현황 (수정된 버전) -->
+				  <div class="border-t border-gray-200 pt-3 mt-3">
+					  <!-- 1. 총 주식 평가액 -->
+					  <div class="flex justify-between items-center">
+						  <span class="text-gray-800 font-bold">총 주식 평가액</span>
+						  <span class="text-lg font-bold"
+								th:classappend="${totalProfitLoss > 0 ? 'text-red-600' : (totalProfitLoss < 0 ? 'text-blue-600' : 'text-gray-800')}"
+								th:text="${@formatUtils.formatKoreanWon(totalStockValue)}">1,710,000원</span>
+					  </div>
+					  <!-- 2. 총 평가 손익 및 수익률 -->
+					  <div class="flex justify-end items-baseline space-x-2 text-sm mt-1">
+       		 <span th:classappend="${totalProfitLoss > 0 ? 'text-red-600' : (totalProfitLoss < 0 ? 'text-blue-600' : 'text-gray-500')}"
+			  th:text="${(totalProfitLoss > 0 ? '+' : (totalProfitLoss < 0 ? '-' : '')) + @formatUtils.formatKoreanWon(T(java.lang.Math).abs(totalProfitLoss))}">
+              +60,000원</span>
+						  <span th:classappend="${totalProfitLoss > 0 ? 'text-red-600' : (totalProfitLoss < 0 ? 'text-blue-600' : 'text-gray-500')}"
+								th:text="'(' + ${#numbers.formatDecimal(totalProfitLossRate, 1, 2)} + '%)'">(+3.64%)</span>
+					  </div>
 				  </div>
 			  </div>
 		  </div>
