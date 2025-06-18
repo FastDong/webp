@@ -78,7 +78,7 @@ public class MainController {
             return "main";
         }
     }
-    @GetMapping("/logout")
+    @PostMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
         return "redirect:/";

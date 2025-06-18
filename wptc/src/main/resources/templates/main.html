@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8" />
   <title>메인 페이지</title>
@@ -202,24 +201,60 @@
     </div>
   </div>
 </div>
-<!-- 탭 전환 스크립트 -->
+
 <script>
-  const tabs = ['board', 'stock', 'game'];
-  tabs.forEach(tab => {
-    document.getElementById(`tab-${tab}-btn`).addEventListener('click', () => {
-      tabs.forEach(t => {
-        document.getElementById(`tab-${t}`).classList.add('hidden');
-        document.getElementById(`tab-${t}-btn`).classList.remove('bg-white', 'text-main-bg', 'border-b-4');
-        document.getElementById(`tab-${t}-btn`).classList.add('bg-gray-700', 'text-white');
-      });
-      document.getElementById(`tab-${tab}`).classList.remove('hidden');
-      document.getElementById(`tab-${tab}-btn`).classList.remove('bg-gray-700', 'text-white');
-      document.getElementById(`tab-${tab}-btn`).classList.add('bg-white', 'text-main-bg', 'border-b-4');
-    });
-  });
+	// 탭 ID 배열
+	const tabs = ['board', 'stock', 'game'];
+
+	// 탭을 활성화하고 스타일을 변경하는 함수
+	function activateTab(tabId) {
+		tabs.forEach(t => {
+			const content = document.getElementById(`tab-${t}`);
+			const btn = document.getElementById(`tab-${t}-btn`);
+
+			// 모든 탭 콘텐츠를 숨기고 버튼 스타일 초기화
+			content.classList.add('hidden');
+			btn.classList.remove('bg-white', 'text-main-bg', 'border-b-4');
+			btn.classList.add('bg-gray-700', 'text-white');
+		});
+
+		// 선택된 탭 콘텐츠를 보여주고 버튼에 활성 스타일 적용
+		const activeContent = document.getElementById(`tab-${tabId}`);
+		const activeBtn = document.getElementById(`tab-${tabId}-btn`);
+
+		activeContent.classList.remove('hidden');
+		activeBtn.classList.remove('bg-gray-700', 'text-white');
+		activeBtn.classList.add('bg-white', 'text-main-bg', 'border-b-4');
+	}
+
+	// 1. 페이지가 로드될 때 실행되는 로직
+	window.addEventListener('DOMContentLoaded', () => {
+		// localStorage에서 마지막으로 선택한 탭 ID를 가져옴
+		const savedTab = localStorage.getItem('selectedTab');
+
+		// 저장된 탭이 있고, 유효한 탭 ID인 경우 해당 탭을 활성화
+		if (savedTab && tabs.includes(savedTab)) {
+			activateTab(savedTab);
+		} else {
+			// 저장된 탭이 없으면 기본값으로 '게시판' 탭을 활성화
+			activateTab('board');
+		}
+	});
+
+	// 2. 각 탭 버튼에 클릭 이벤트 추가
+	tabs.forEach(tabId => {
+		document.getElementById(`tab-${tabId}-btn`).addEventListener('click', () => {
+			// 탭을 시각적으로 활성화
+			activateTab(tabId);
+			// 클릭한 탭의 ID를 localStorage에 저장
+			localStorage.setItem('selectedTab', tabId);
+		});
+	});
 </script>
+
+<!-- 회원가입 성공 알림 스크립트 (기존과 동일) -->
 <script th:if="${signupSuccess}" th:inline="javascript">
-  alert("성공");
+	alert("회원가입을 축하합니다! 🎉"); // 메시지 수정
 </script>
 </body>
 </html>
