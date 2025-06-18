@@ -4,9 +4,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,23 +21,25 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ce.mnu.wptc.entity.Member;
 import ce.mnu.wptc.entity.Post;
 import ce.mnu.wptc.entity.Reply;
+import ce.mnu.wptc.repository.MemberRepository;
 import ce.mnu.wptc.repository.PostRepository;
 import ce.mnu.wptc.repository.ReplyRepository;
-import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class PostController {
     private final PostRepository postRepository;
     private final ReplyRepository replyRepository;
+    private final MemberRepository memberRepository;
 
     @Autowired
-    public PostController(PostRepository postRepository, ReplyRepository replyRepository) {
+    public PostController(PostRepository postRepository, ReplyRepository replyRepository, MemberRepository memberRepository) {
         this.postRepository = postRepository;
         this.replyRepository = replyRepository;
+        this.memberRepository = memberRepository;
     }
 
     @GetMapping("/posts/{id}")
-    public String postDetail(@PathVariable Long id, Model model, HttpSession session) {
+    public String postDetail(@PathVariable Long id, Model model) {
         Post post = postRepository.findById(id).orElseThrow();
         List<Reply> replies = replyRepository.findByPost_PostId(id);
 
@@ -48,8 +53,8 @@ public class PostController {
             .filter(r -> r.getParent() != null)
             .collect(Collectors.groupingBy(r -> r.getParent().getReplyId()));
 
-        // 세션에서 로그인한 회원 정보 꺼내서 모델에 추가
-        Member member = (Member) session.getAttribute("loginMember");
+        // Spring Security에서 현재 로그인한 회원 정보 가져오기
+        Member member = getCurrentMember().orElse(null);
         model.addAttribute("member", member);
 
         model.addAttribute("post", post);
@@ -61,14 +66,17 @@ public class PostController {
     @PostMapping("/posts/{id}/comment")
     public String addComment(@PathVariable Long id,
                              @RequestParam String content,
-                             @RequestParam(required = false) Long parent, // parentId → parent
-                             HttpSession session,
+                             @RequestParam(required = false) Long parent,
                              RedirectAttributes redirectAttributes) {
-        Member member = (Member) session.getAttribute("loginMember");
-        if (member == null) {
+        
+        // Spring Security에서 현재 로그인한 회원 정보 가져오기
+        Optional<Member> memberOpt = getCurrentMember();
+        if (memberOpt.isEmpty()) {
             redirectAttributes.addFlashAttribute("loginError", "로그인이 필요합니다.");
             return "redirect:/posts/" + id;
         }
+
+        Member member = memberOpt.get();
 
         // parent 보정: 대댓글의 대댓글 방지
         Reply parentReply = null;
@@ -85,7 +93,7 @@ public class PostController {
         reply.setPost(postRepository.findById(id).orElseThrow());
         reply.setMember(member);
         reply.setReplyTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        reply.setParent(parentReply); // 객체 참조로 저장
+        reply.setParent(parentReply);
         reply.setLayer(parentReply == null ? 0 : 1);
 
         replyRepository.save(reply);
@@ -96,11 +104,18 @@ public class PostController {
     @PostMapping("/posts/{postId}/comment/{replyId}/delete")
     public String deleteReply(@PathVariable Long postId,
                               @PathVariable Long replyId,
-                              HttpSession session,
                               RedirectAttributes redirectAttributes) {
-        Member member = (Member) session.getAttribute("loginMember");
+        
+        Optional<Member> memberOpt = getCurrentMember();
+        if (memberOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
+            return "redirect:/posts/" + postId;
+        }
+
+        Member member = memberOpt.get();
         Reply reply = replyRepository.findById(replyId).orElse(null);
-        if (reply != null && member != null && reply.getMember().getMemberId().equals(member.getMemberId())) {
+        
+        if (reply != null && reply.getMember().getMemberId().equals(member.getMemberId())) {
             replyRepository.delete(reply); // Cascade 설정 시 자식 대댓글도 함께 삭제
             redirectAttributes.addFlashAttribute("message", "댓글이 삭제되었습니다.");
         } else {
@@ -110,10 +125,20 @@ public class PostController {
     }
 
     @PostMapping("/posts/{postId}/comment/{replyId}/edit")
-    public String editReply(@PathVariable Long postId, @PathVariable Long replyId,
-                            @RequestParam String content, HttpSession session, RedirectAttributes redirectAttributes) {
+    public String editReply(@PathVariable Long postId, 
+                            @PathVariable Long replyId,
+                            @RequestParam String content, 
+                            RedirectAttributes redirectAttributes) {
+        
+        Optional<Member> memberOpt = getCurrentMember();
+        if (memberOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
+            return "redirect:/posts/" + postId;
+        }
+
+        Member member = memberOpt.get();
         Reply reply = replyRepository.findById(replyId).orElseThrow();
-        Member member = (Member) session.getAttribute("loginMember");
+        
         if (reply.getMember().getMemberId().equals(member.getMemberId())) {
             reply.setContents(content);
             replyRepository.save(reply);
@@ -122,5 +147,20 @@ public class PostController {
             redirectAttributes.addFlashAttribute("error", "수정 권한이 없습니다.");
         }
         return "redirect:/posts/" + postId;
+    }
+
+    /**
+     * 현재 로그인한 사용자의 Member 객체를 반환
+     */
+    private Optional<Member> getCurrentMember() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication == null || !authentication.isAuthenticated() || 
+            "anonymousUser".equals(authentication.getName())) {
+            return Optional.empty();
+        }
+
+        String email = authentication.getName();
+        return memberRepository.findByEmail(email);
     }
 }

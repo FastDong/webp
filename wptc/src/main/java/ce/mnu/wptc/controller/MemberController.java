@@ -3,9 +3,13 @@ package ce.mnu.wptc.controller;
 import ce.mnu.wptc.entity.Member;
 import ce.mnu.wptc.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
@@ -13,26 +17,28 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class MemberController {
 
     private final MemberRepository memberRepository;
+    private final PasswordEncoder encoder;
 
-    // 회원가입 폼 보여주기
+    // ❌ 로그인 메서드 제거 - Spring Security가 처리
+    // @PostMapping("/login") 삭제
+
+    // 회원가입 폼
     @GetMapping("/signup")
     public String signupForm() {
-        return "/signup"; // templates/members/signup.html
+        return "/signup";
     }
 
-    // 회원가입 처리 (폼에서 전송된 데이터 받기)
+    // 회원가입 처리 (비밀번호 암호화)
     @PostMapping("/signup")
     public String signup(@RequestParam String name,
                          @RequestParam String email,
                          @RequestParam String passwd,
                          RedirectAttributes redirectAttributes) {
 
-        // point와 rank는 기본값으로 설정
         long point = 10000;
         String rank = "일반";
         long postCount = 0;
         long replyCount = 0;
-
 
         // 이메일 중복 체크
         if(memberRepository.findByEmail(email).isPresent()) {
@@ -40,15 +46,47 @@ public class MemberController {
             return "redirect:/signup";
         }
 
+        // 비밀번호 암호화
+        String encodedPw = encoder.encode(passwd);
 
-        // Member 객체 생성 및 저장
-        Member member = new Member(name, email, passwd, point, rank, postCount, replyCount);
+        Member member = new Member(name, email, encodedPw, point, rank, postCount, replyCount);
         memberRepository.save(member);
 
-        // 성공 메시지 추가
         redirectAttributes.addFlashAttribute("signupSuccess", "회원가입을 축하합니다! 🎉");
-
-        // 회원가입 후 메인 페이지로 리다이렉트
         return "redirect:/";
+    }
+
+    // 나머지 메서드들은 그대로 유지...
+    @GetMapping("/findMyId")
+    public String findIdForm() {
+        return "findMyId";
+    }
+
+    @PostMapping("/findMyId")
+    public String findId(@RequestParam String email, Model model) {
+        boolean exists = memberRepository.findByEmail(email).isPresent();
+        model.addAttribute("emailResult", exists);
+        return "findMyId";
+    }
+
+    @GetMapping("/findMyPw")
+    public String findPwForm() {
+        return "findMyPw";
+    }
+
+    @PostMapping("/findMyPw")
+    public String findPw(@RequestParam String email,
+                         @RequestParam String name,
+                         Model model) {
+        Optional<Member> memberOpt = memberRepository.findByEmail(email);
+        String pwResult = "";
+        if (memberOpt.isPresent() && memberOpt.get().getName().equals(name)) {
+            String tempPw = "1234";
+            memberOpt.get().setPasswd(encoder.encode(tempPw));
+            memberRepository.save(memberOpt.get());
+            pwResult = tempPw;
+        }
+        model.addAttribute("pwResult", pwResult);
+        return "findMyPw";
     }
 }

@@ -252,14 +252,14 @@
           </div>
           <div>
             <label for="password" class="block text-gray-700 font-semibold mb-2">비밀번호</label>
-            <input type="password" id="password" name="password"
+            <input type="password" id="password" name="passwd"
                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                    placeholder="비밀번호를 입력하세요" required>
           </div>
           <div class="text-sm text-left">
-            <a th:href="@{/members/find-id}" class="text-gray-500 hover:text-blue-600 transition-colors">아이디 찾기</a>
+            <a th:href="@{/findMyId}" class="text-gray-500 hover:text-blue-600 transition-colors">아이디 찾기</a>
             <span class="text-gray-300 mx-1">|</span>
-            <a th:href="@{/members/find-pw}" class="text-gray-500 hover:text-blue-600 transition-colors">비밀번호 찾기</a>
+            <a th:href="@{/findMyId}" class="text-gray-500 hover:text-blue-600 transition-colors">비밀번호 찾기</a>
           </div>
           <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">로그인</button>
 			<div th:if="${param.error}" class="text-red-500 text-sm text-center font-semibold">
