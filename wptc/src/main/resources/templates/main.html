@@ -139,10 +139,19 @@
 			</div>
 		</div>
       <!-- 게임 -->
-      <div id="tab-game" class="tab-content hidden">
-        <h2 class="text-2xl font-bold mb-6 text-gray-800">게임</h2>
-        <div class="text-gray-600 text-lg">여기에 게임 관련 내용을 넣으세요.</div>
-      </div>
+      	<div id="tab-game" class="tab-content hidden max-w-xs mx-auto p-4 bg-white rounded shadow">
+		  <h2 class="text-2xl font-bold mb-6 text-gray-800">게임</h2>
+		  <div id="game-content">
+		    <div class="text-gray-600 text-base mb-4">게임을 선택하세요.</div>
+		    <div class="flex gap-2">
+		      <button id="btn-even-odd" class="px-3 py-2 bg-blue-500 text-white rounded text-sm">홀짝</button>
+		      <button id="btn-updown" class="px-3 py-2 bg-green-500 text-white rounded text-sm">UPDOWN</button>
+		    </div>
+		    <div class="mt-4 text-sm text-gray-700">
+		      내 포인트: <span id="current-point">0</span>
+		    </div>
+		  </div>
+		</div>
     </div>
   </div>
   <!-- 오른쪽: 내정보/로그인 -->
@@ -362,6 +371,159 @@
 	}
 	/*]]>*/
 </script>
+
+<script>
+	document.addEventListener('DOMContentLoaded', function() {
+	  // 최초 메뉴 이벤트 연결
+	  setGameMenuEvents();
+	});
+	
+	// 게임 메뉴 버튼 이벤트 연결 함수
+	function setGameMenuEvents() {
+	  const evenOddBtn = document.getElementById('btn-even-odd');
+	  const updownBtn = document.getElementById('btn-updown');
+	  if (evenOddBtn) evenOddBtn.onclick = renderEvenOddGame;
+	  if (updownBtn) updownBtn.onclick = renderUpDownGame;
+	}
+	
+	// 홀짝 게임 UI 및 로직
+	function renderEvenOddGame() {
+	  document.getElementById('game-content').innerHTML = `
+	    <button id="btn-back" class="mb-2 text-blue-400 underline text-xs">← 뒤로</button>
+	    <div class="mb-2 text-base font-semibold">홀짝게임</div>
+	    <div class="mb-2 text-sm">도전 포인트: <span id="eo-point">10</span></div>
+	    <input type="number" id="eo-input" class="border p-1 rounded w-20 text-sm" placeholder="숫자">
+	    <div class="flex gap-1 mt-2">
+	      <button id="even-btn" class="bg-blue-500 text-white px-2 py-1 rounded text-xs">홀</button>
+	      <button id="odd-btn" class="bg-blue-500 text-white px-2 py-1 rounded text-xs">짝</button>
+	    </div>
+	    <div id="eo-result" class="mt-2 text-sm"></div>
+	    <div id="eo-action" class="mt-2"></div>
+	  `;
+	  let streak = 0;
+	  let point = 10;
+	  let gameActive = true;
+	
+	  document.getElementById('btn-back').onclick = renderGameMenu;
+	
+	  function play(choice) {
+	    if (!gameActive) return;
+	    const num = parseInt(document.getElementById('eo-input').value, 10);
+	    if (isNaN(num)) {
+	      document.getElementById('eo-result').innerText = '숫자를 입력하세요.';
+	      return;
+	    }
+	    const isEven = num % 2 === 0;
+	    const win = (choice === '홀' && !isEven) || (choice === '짝' && isEven);
+	    if (win) {
+	      streak += 1;
+	      document.getElementById('eo-result').innerText = `정답! 연승: ${streak}, 포인트: ${point}`;
+	      document.getElementById('eo-action').innerHTML = `
+	        <button id="eo-stop" class="bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs">멈추기</button>
+	        <button id="eo-double" class="bg-yellow-400 text-white px-2 py-1 rounded text-xs ml-1">2배 도전</button>
+	      `;
+	      gameActive = false;
+	      document.getElementById('eo-stop').onclick = function() {
+	        updateGamePoint(point);
+	      };
+	      document.getElementById('eo-double').onclick = function() {
+	        point *= 2;
+	        document.getElementById('eo-point').innerText = point;
+	        document.getElementById('eo-result').innerText = '';
+	        document.getElementById('eo-action').innerHTML = '';
+	        gameActive = true;
+	      };
+	    } else {
+	      document.getElementById('eo-result').innerText = '실패! 포인트 획득 실패';
+	      document.getElementById('eo-action').innerHTML = '';
+	      streak = 0;
+	      point = 10;
+	    }
+	  }
+	
+	  document.getElementById('even-btn').onclick = () => play('홀');
+	  document.getElementById('odd-btn').onclick = () => play('짝');
+	}
+	
+	// 업다운 게임 UI 및 로직
+	function renderUpDownGame() {
+	  document.getElementById('game-content').innerHTML = `
+	    <button id="btn-back" class="mb-2 text-green-400 underline text-xs">← 뒤로</button>
+	    <div class="mb-2 text-base font-semibold">UPDOWN 게임</div>
+	    <div class="mb-2 text-sm">남은 기회: <span id="ud-chance">12</span> / 포인트: <span id="ud-point">4096</span></div>
+	    <input type="number" id="ud-input" class="border p-1 rounded w-20 text-sm" placeholder="1~100">
+	    <button id="ud-guess" class="bg-green-500 text-white px-2 py-1 rounded text-xs ml-1">확인</button>
+	    <div id="ud-result" class="mt-2 text-sm"></div>
+	  `;
+	  let answer = Math.floor(Math.random() * 100) + 1;
+	  let chance = 12;
+	  let point = 4096;
+	  let finished = false;
+	
+	  document.getElementById('btn-back').onclick = renderGameMenu;
+	
+	  document.getElementById('ud-guess').onclick = function() {
+	    if (finished) return;
+	    const guess = parseInt(document.getElementById('ud-input').value, 10);
+	    if (isNaN(guess) || guess < 1 || guess > 100) {
+	      document.getElementById('ud-result').innerText = '1~100 사이의 숫자 입력!';
+	      return;
+	    }
+	    if (guess === answer) {
+	      document.getElementById('ud-result').innerText = `정답! ${point}포인트 획득!`;
+	      updateGamePoint(point);
+	      finished = true;
+	    } else {
+	      chance -= 1;
+	      point = Math.max(1, Math.floor(point / 2));
+	      document.getElementById('ud-chance').innerText = chance;
+	      document.getElementById('ud-point').innerText = point;
+	      document.getElementById('ud-result').innerText = guess < answer ? 'UP!' : 'DOWN!';
+	      if (chance === 0) {
+	        document.getElementById('ud-result').innerText = `실패! 1포인트 획득`;
+	        updateGamePoint(1);
+	        finished = true;
+	      }
+	    }
+	  };
+	}
+	
+	// 게임 메뉴로 돌아가기
+	function renderGameMenu() {
+	  document.getElementById('game-content').innerHTML = `
+	    <div class="text-gray-600 text-base mb-4">게임을 선택하세요.</div>
+	    <div class="flex gap-2">
+	      <button id="btn-even-odd" class="px-3 py-2 bg-blue-500 text-white rounded text-sm">홀짝</button>
+	      <button id="btn-updown" class="px-3 py-2 bg-green-500 text-white rounded text-sm">UPDOWN</button>
+	    </div>
+	    <div class="mt-4 text-sm text-gray-700">
+	      내 포인트: <span id="current-point">${document.getElementById('current-point') ? document.getElementById('current-point').innerText : 0}</span>
+	    </div>
+	  `;
+	  setGameMenuEvents();
+	}
+	
+	// Ajax로 포인트 업데이트하고, 성공 시 메인으로 리다이렉트
+	function updateGamePoint(delta) {
+	  fetch('/game/point', {
+	    method: 'POST',
+	    headers: {'Content-Type': 'application/json'},
+	    body: JSON.stringify({delta: delta})
+	  })
+	  .then(res => {
+	    if (!res.ok) throw new Error('서버 오류');
+	    return res.json();
+	  })
+	  .then(data => {
+	    // 안전하게 요소 체크 후 갱신
+	    const pointElem = document.getElementById('current-point');
+	    if (pointElem) pointElem.innerText = data.point;
+	    window.location.href = '/';
+	  })
+	  .catch(err => { alert(err.message); });
+	}
+</script>
+
 
 <!-- 회원가입 성공 알림 스크립트 (기존과 동일) -->
 <script th:if="${signupSuccess}" th:inline="javascript">
