@@ -26,23 +26,27 @@
 <nav class="w-full flex items-center justify-between px-10 py-4 bg-main-bg">
     <!-- 로고 (메인으로 이동) -->
     <a th:href="@{/}" class="text-banner-yellow text-2xl italic font-extrabold tracking-wide hover:underline">Banner</a>
-    <!-- 로그인/내정보 영역: 더 작고 오른쪽 상단에 -->
+    <!-- 로그인/내정보 영역: 오른쪽 상단 -->
     <div class="flex items-center gap-3">
         <!-- 로그인 상태: 이름/등급 -->
         <span th:if="${member != null}" class="flex items-center gap-2">
-	      <span class="text-gray-800 text-lg font-semibold" th:text="${member?.name ?: ''}">user01</span>
-	      <span class="text-blue-600 text-lg font-semibold" th:text="${member?.rank ?: ''}">Bronze</span>
-      </span>
+            <span class="text-gray-300 text-lg font-semibold" th:text="${member?.name ?: ''}">user01</span>
+            <span class="text-blue-600 text-lg font-semibold" th:text="${member?.rank ?: ''}">Bronze</span>
+            <form th:action="@{/logout}" method="post" class="inline ml-2">
+                <button type="submit" class="text-sm bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">로그아웃</button>
+            </form>
+        </span>
         <!-- 비로그인 상태: 로그인 버튼 -->
         <span th:if="${member == null}">
-        <a th:href="@{/members/login}" class="bg-blue-500 text-white px-3 py-1 rounded-md font-semibold text-sm hover:bg-blue-600 transition-colors">로그인</a>
-      </span>
+            <a th:href="@{/}" class="bg-blue-500 text-white px-3 py-1 rounded-md font-semibold text-sm hover:bg-blue-600 transition-colors">로그인</a>
+            <a th:href="@{/signup}" class="ml-2 text-yellow-600 underline text-sm font-semibold">회원가입</a>
+        </span>
     </div>
 </nav>
 
 <!-- 게시글 상세 카드 -->
 <div class="w-full flex justify-center items-center min-h-[80vh]">
-    <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl p-12">
+    <div class="w-full max-w-5xl bg-white rounded-2xl shadow-xl p-16">
         <!-- 제목/정보 -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
             <h1 class="text-2xl font-bold text-gray-800 mb-2 md:mb-0" th:text="${post.title}">게시글 제목</h1>
@@ -53,34 +57,31 @@
             </div>
         </div>
         <!-- 본문 -->
-        <div class="border-t border-b py-10 text-gray-800 text-lg min-h-[180px]" th:text="${post.contents}">
+        <div class="border-t border-b py-10 text-gray-700 text-lg min-h-[350px]" th:text="${post.contents}">
             게시글 내용이 여기에 표시됩니다.
         </div>
         <!-- 댓글 영역 -->
         <div class="mt-10">
-            <h2 class="text-lg font-bold mb-4 text-gray-700">댓글</h2>
-            <div th:if="${#lists.isEmpty(post.replyCount)}" class="text-gray-400 text-center py-4">댓글이 없습니다.</div>
-            <div th:each="comment : ${post.replyCount}" class="mb-5">
+            <div th:if="${#lists.isEmpty(replies)}" class="text-gray-400 text-center py-4">댓글이 없습니다.</div>
+            <div th:each="reply : ${replies}" class="mb-5 text-[80%]">
                 <div class="flex items-center gap-2">
-                    <<tr th:each="reply : ${post.reply}">
-					  <td th:text="${reply.member.name}">댓글작성자</td>
-					</tr>
+                    <span th:text="${reply.member.name}">댓글작성자</span>
                     <span class="text-xs text-gray-400" th:text="${reply.replyTime}">2025-06-17 14:00</span>
                 </div>
                 <div class="ml-2 text-gray-800" th:text="${reply.contents}">댓글 내용</div>
             </div>
             <!-- 댓글 작성 폼 (로그인 상태에서만) -->
-            <form th:if="${member != null}" th:action="@{/posts/{id}/comment(id=${post.id})}" method="post" class="mt-6 flex gap-2">
+            <form th:if="${member != null}" th:action="@{/posts/{id}/comment(id=${post.postId})}" method="post" class="mt-6 flex gap-2">
                 <input type="text" name="content" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="댓글을 입력하세요" required>
                 <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">댓글 등록</button>
             </form>
             <div th:if="${member == null}" class="mt-6 text-center text-gray-400 text-sm">
-                댓글을 작성하려면 <a th:href="@{/members/login}" class="text-blue-600 hover:underline">로그인</a>이 필요합니다.
+                댓글을 작성하려면 <a th:href="@{/}" class="text-blue-600 hover:underline">로그인</a>이 필요합니다.
             </div>
         </div>
         <!-- 뒤로가기 버튼 -->
         <div class="mt-10 text-center">
-            <a th:href="@{/}" class="inline-block bg-gray-200 text-gray-700 px-7 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">목록으로</a>
+            <a th:href="@{/}" class="inline-block bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors">목록으로</a>
         </div>
     </div>
 </div>
